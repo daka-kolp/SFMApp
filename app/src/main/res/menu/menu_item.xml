@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/file_item_info"
+        android:title="@string/info" />
+    <item
+        android:id="@+id/file_item_open"
+        android:title="@string/open" />
+    <item
+        android:id="@+id/file_manager_menu_clear_selection"
+        android:title="@string/rename" />
+    <item
+        android:id="@+id/file_manager_menu_delete"
+        android:title="@string/delete" />
+</menu>
