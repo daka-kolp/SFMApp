@@ -1,4 +1,4 @@
-package com.dakakolp.feapp.ui.activities;
+package com.dakakolp.sfmapp.ui.activities;
 
 import android.Manifest;
 import android.content.Intent;

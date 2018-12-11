@@ -1,4 +1,4 @@
-package com.dakakolp.feapp;
+package com.dakakolp.sfmapp;
 
 import org.junit.Test;
 

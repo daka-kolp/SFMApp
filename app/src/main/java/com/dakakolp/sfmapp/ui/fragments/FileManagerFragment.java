@@ -1,4 +1,4 @@
-package com.dakakolp.feapp.ui.fragments;
+package com.dakakolp.sfmapp.ui.fragments;
 
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
@@ -19,13 +19,14 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
-import com.dakakolp.feapp.R;
-import com.dakakolp.feapp.ui.activities.MainActivity;
-import com.dakakolp.feapp.ui.adapters.FileListAdapter;
-import com.dakakolp.feapp.ui.adapters.adaptermodels.ListItem;
-import com.dakakolp.feapp.ui.fragments.helperclasses.HistoryEntry;
-import com.dakakolp.feapp.ui.fragments.listeners.DocumentSelectListener;
-import com.dakakolp.feapp.utils.StaticHelper;
+import com.dakakolp.sfmapp.R;
+import com.dakakolp.sfmapp.ui.activities.MainActivity;
+import com.dakakolp.sfmapp.ui.adapters.FileListAdapter;
+import com.dakakolp.sfmapp.ui.adapters.adaptermodels.ListItem;
+import com.dakakolp.sfmapp.ui.fragments.helpers.HistoryEntry;
+import com.dakakolp.sfmapp.ui.fragments.interfaces.DocumentSelectListener;
+import com.dakakolp.sfmapp.ui.fragments.helpers.FormatString;
+import com.dakakolp.sfmapp.ui.fragments.layouts.AndroidUtil;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -183,8 +184,8 @@ public class FileManagerFragment extends Fragment {
             history = mHistory.remove(mHistory.size() - 1);
             sTitleForUpdate = history.getTitle();
             updateTitleName(sTitleForUpdate);
-            if (history.getDir() != null) {
-                listFiles(history.getDir());
+            if (history.getDirectory() != null) {
+                listFiles(history.getDirectory());
             } else {
                 listRootFolders();
             }
@@ -194,7 +195,7 @@ public class FileManagerFragment extends Fragment {
             history = new HistoryEntry();
             history.setScrollItem(mListView.getFirstVisiblePosition());
             history.setScrollOffset(mListView.getChildAt(0).getTop());
-            history.setDir(mCurrentDir);
+            history.setDirectory(mCurrentDir);
             history.setTitle(sTitleForUpdate);
             updateTitleName(sTitleForUpdate);
             if (!listFiles(file)) {
@@ -257,7 +258,7 @@ public class FileManagerFragment extends Fragment {
         ArrayList<String> files = new ArrayList<>();
         files.add("Name: " + file.getName());
         files.add("Abs path:\n" + file.getAbsolutePath());
-        files.add("File size: " + StaticHelper.formatFileSize(file.length()));
+        files.add("File size: " + FormatString.formatFileSize(file.length()));
         files.add("Can read: " + String.valueOf(file.canRead()));
         files.add("Can write: " + String.valueOf(file.canWrite()));
         files.add("Can execute: " + String.valueOf(file.canExecute()));
@@ -335,7 +336,7 @@ public class FileManagerFragment extends Fragment {
                     && !Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED_READ_ONLY)) {
                 mCurrentDir = dir;
                 mItems.clear();
-                StaticHelper.clearDrawableAnimation(mListView);
+                AndroidUtil.clearDrawableAnimation(mListView);
                 listAdapter.notifyDataSetChanged();
                 return true;
             }
@@ -358,6 +359,18 @@ public class FileManagerFragment extends Fragment {
         mItems.clear();
 
         //sort folders and files
+        sortFiles(files);
+
+        initListItems(files);
+
+
+//add item-back to last folder
+        initFolderBack();
+        listAdapter.notifyDataSetChanged();
+        return true;
+    }
+
+    private void sortFiles(File[] files) {
         Arrays.sort(files, new Comparator<File>() {
             @Override
             public int compare(File lhs, File rhs) {
@@ -367,7 +380,9 @@ public class FileManagerFragment extends Fragment {
                 return lhs.getName().compareToIgnoreCase(rhs.getName());
             }
         });
+    }
 
+    private void initListItems(File[] files) {
         for (File file : files) {
             if (file.getName().startsWith(".")) {
                 continue;
@@ -383,22 +398,20 @@ public class FileManagerFragment extends Fragment {
                 String[] sp = fileName.split("\\.");
                 String extension = sp.length > 1 ? sp[sp.length - 1] : "?";
                 item.setExtension(extension);
-                item.setSubtitle(StaticHelper.formatFileSize(file.length()));
+                item.setSubtitle(FormatString.formatFileSize(file.length()));
             }
             mItems.add(item);
         }
+    }
 
-//add item-back to last folder
+    private void initFolderBack() {
         ListItem item = new ListItem();
         item.setTitle("<-");
         item.setSubtitle("");
         item.setIcon(R.drawable.ic_directory);
         item.setFile(null);
         mItems.add(0, item);
-        StaticHelper.clearDrawableAnimation(mListView);
-
-        listAdapter.notifyDataSetChanged();
-        return true;
+        AndroidUtil.clearDrawableAnimation(mListView);
     }
 
     private String getInfoAboutFileSystemSpace(String path) {
@@ -408,7 +421,7 @@ public class FileManagerFragment extends Fragment {
         if (total == 0) {
             return null;
         }
-        return "Free " + StaticHelper.formatFileSize(free) + " of " + StaticHelper.formatFileSize(total);
+        return "Free " + FormatString.formatFileSize(free) + " of " + FormatString.formatFileSize(total);
     }
 
     public void showInfoBox(List<String> message) {
@@ -458,8 +471,8 @@ public class FileManagerFragment extends Fragment {
             HistoryEntry histEntry = mHistory.remove(mHistory.size() - 1);
             sTitleForUpdate = histEntry.getTitle();
             updateTitleName(sTitleForUpdate);
-            if (histEntry.getDir() != null) {
-                listFiles(histEntry.getDir());
+            if (histEntry.getDirectory() != null) {
+                listFiles(histEntry.getDirectory());
             } else {
                 listRootFolders();
             }

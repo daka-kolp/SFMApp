@@ -1,11 +1,11 @@
-package com.dakakolp.feapp.ui.adapters;
+package com.dakakolp.sfmapp.ui.adapters;
 
 import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.dakakolp.feapp.ui.adapters.adaptermodels.ListItem;
-import com.dakakolp.feapp.ui.fragments.helperclasses.layouts.DetailCellLayout;
+import com.dakakolp.sfmapp.ui.adapters.adaptermodels.ListItem;
+import com.dakakolp.sfmapp.ui.fragments.layouts.DetailCellLayout;
 
 import java.util.List;
 

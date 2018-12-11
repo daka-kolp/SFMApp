@@ -1,4 +1,4 @@
-package com.dakakolp.feapp.ui.adapters.adaptermodels;
+package com.dakakolp.sfmapp.ui.adapters.adaptermodels;
 
 import java.io.File;
 

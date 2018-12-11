@@ -1,4 +1,4 @@
-package com.dakakolp.feapp;
+package com.dakakolp.sfmapp;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;

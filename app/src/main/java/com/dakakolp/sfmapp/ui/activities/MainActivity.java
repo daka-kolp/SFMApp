@@ -1,4 +1,4 @@
-package com.dakakolp.feapp.ui.activities;
+package com.dakakolp.sfmapp.ui.activities;
 
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
@@ -10,9 +10,9 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.dakakolp.feapp.R;
-import com.dakakolp.feapp.ui.fragments.FileManagerFragment;
-import com.dakakolp.feapp.ui.fragments.listeners.DocumentSelectListener;
+import com.dakakolp.sfmapp.R;
+import com.dakakolp.sfmapp.ui.fragments.FileManagerFragment;
+import com.dakakolp.sfmapp.ui.fragments.interfaces.DocumentSelectListener;
 
 import java.util.ArrayList;
 

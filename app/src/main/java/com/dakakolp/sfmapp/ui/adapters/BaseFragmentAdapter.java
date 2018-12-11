@@ -6,7 +6,7 @@
  * Copyright Nikolai Kudashov, 2013-2014.
  */
 
-package com.dakakolp.feapp.ui.adapters;
+package com.dakakolp.sfmapp.ui.adapters;
 
 import android.database.DataSetObserver;
 import android.view.View;
