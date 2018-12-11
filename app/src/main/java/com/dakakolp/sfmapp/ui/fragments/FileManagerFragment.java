@@ -3,6 +3,7 @@ package com.dakakolp.sfmapp.ui.fragments;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
@@ -10,22 +11,26 @@ import android.os.Environment;
 import android.os.StatFs;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.support.v4.view.GravityCompat;
 import android.support.v7.widget.PopupMenu;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.dakakolp.sfmapp.R;
-import com.dakakolp.sfmapp.ui.activities.MainActivity;
 import com.dakakolp.sfmapp.ui.adapters.FileListAdapter;
 import com.dakakolp.sfmapp.ui.adapters.adaptermodels.ListItem;
+import com.dakakolp.sfmapp.ui.fragments.helpers.FormatString;
 import com.dakakolp.sfmapp.ui.fragments.helpers.HistoryEntry;
 import com.dakakolp.sfmapp.ui.fragments.interfaces.DocumentSelectListener;
-import com.dakakolp.sfmapp.ui.fragments.helpers.FormatString;
 import com.dakakolp.sfmapp.ui.fragments.layouts.AndroidUtil;
 
 import java.io.BufferedReader;
@@ -48,7 +53,7 @@ public class FileManagerFragment extends Fragment {
 
     private ListView mListView;
     private ArrayList<ListItem> mItems = new ArrayList<>();
-    private FileListAdapter listAdapter;
+    private FileListAdapter mListAdapter;
     private DocumentSelectListener mListener;
 
     private boolean isBroadcastReceiverRegistered;
@@ -130,9 +135,9 @@ public class FileManagerFragment extends Fragment {
                     container,
                     false);
 
-            listAdapter = new FileListAdapter(mContext, mItems);
+            mListAdapter = new FileListAdapter(mContext, mItems);
             mListView = mFileManagerView.findViewById(R.id.listView);
-            mListView.setAdapter(listAdapter);
+            mListView.setAdapter(mListAdapter);
 
             mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
@@ -144,7 +149,7 @@ public class FileManagerFragment extends Fragment {
             mListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
                 @Override
                 public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
-                    return chooseLongItem(i);
+                    return showInfoAbout(i);
                 }
             });
             listRootFolders();
@@ -221,7 +226,7 @@ public class FileManagerFragment extends Fragment {
         }
     }
 
-    private boolean chooseLongItem(int i) {
+    private boolean showInfoAbout(int i) {
         if (i < 0 || i >= mItems.size()) {
             return false;
         }
@@ -282,7 +287,7 @@ public class FileManagerFragment extends Fragment {
         fs.setIcon(R.drawable.ic_directory);
         fs.setFile(new File("/"));
         mItems.add(fs);
-        listAdapter.notifyDataSetChanged();
+        mListAdapter.notifyDataSetChanged();
     }
 
     private void initInternalStore(String extStorageAbsPath) {
@@ -337,7 +342,7 @@ public class FileManagerFragment extends Fragment {
                 mCurrentDir = dir;
                 mItems.clear();
                 AndroidUtil.clearDrawableAnimation(mListView);
-                listAdapter.notifyDataSetChanged();
+                mListAdapter.notifyDataSetChanged();
                 return true;
             }
             showInfoBox("DirectoryAccessError");
@@ -366,7 +371,7 @@ public class FileManagerFragment extends Fragment {
 
 //add item-back to last folder
         initFolderBack();
-        listAdapter.notifyDataSetChanged();
+        mListAdapter.notifyDataSetChanged();
         return true;
     }
 
@@ -439,31 +444,88 @@ public class FileManagerFragment extends Fragment {
                 .setPositiveButton("OK", null).show();
     }
 
-    public void openPopupMenu(View view, int position) {
-        PopupMenu popupMenu = new PopupMenu(mContext, view);
-        popupMenu.inflate(R.menu.menu_item);
+    public void openPopupMenu(View view, final int position) {
+
+        PopupMenu popupMenu = new PopupMenu(mContext, view, GravityCompat.END);
+        popupMenu.getMenuInflater().inflate(R.menu.menu_item, popupMenu.getMenu());
         popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 switch (item.getItemId()) {
                     case R.id.file_item_info:
-                        Log.d(MainActivity.class.getName(), "file_item_info ");
+                        showInfoAbout(position);
                         return true;
                     case R.id.file_item_open:
-                        Log.d(MainActivity.class.getName(), "file_item_open ");
+
+
                         return true;
                     case R.id.file_item_rename:
-                        Log.d(MainActivity.class.getName(), "file_item_rename ");
+                        showRenameDialog(position);
                         return true;
                     case R.id.file_item_delete:
-                        Log.d(MainActivity.class.getName(), "file_item_delete ");
-                        return true;
+                        showDeleteDialog(position);
 
+                        return true;
                 }
                 return false;
             }
         });
         popupMenu.show();
+    }
+
+    private void showRenameDialog(int position) {
+        final File file = mItems.get(position).getFile();
+        final EditText inputNewName = new EditText(mContext);
+        inputNewName.setText(file.getName());
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT
+        );
+        inputNewName.setLayoutParams(layoutParams);
+
+        new AlertDialog.Builder(mContext)
+                .setTitle(mContext.getString(R.string.app_name))
+                .setMessage("Do you want to rename file?")
+                .setView(inputNewName)
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String newName = inputNewName.getText().toString();
+                        if (!TextUtils.isEmpty(newName)) {
+                            String path = file.getAbsolutePath()
+                                    .substring(0, file.getAbsolutePath().lastIndexOf("/") + 1);
+                            if(file.renameTo(new File(path + newName))) {
+                                listFiles(mCurrentDir);
+                            } else {
+                                // TODO: 12/11/18 doesn't want work with SDCard
+                                Toast.makeText(mContext, "You can't rename the file...", Toast.LENGTH_SHORT).show();
+                            }
+
+                        }
+                    }
+                })
+                .setNegativeButton("CANCEL", null)
+                .show();
+    }
+
+    private void showDeleteDialog(final int position) {
+        new AlertDialog.Builder(mContext)
+                .setTitle(mContext.getString(R.string.app_name))
+                .setMessage("Do you want to delete the file?")
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        File file = mItems.get(position).getFile();
+                        if (file.delete()) {
+                            listFiles(mCurrentDir);
+                        } else {
+                            // TODO: 12/11/18 doesn't want work with SDCard
+                            Toast.makeText(mContext, "You can't delete the file...", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                })
+                .setNegativeButton("CANCEL", null)
+                .show();
     }
 
     public boolean onBackPressed() {
