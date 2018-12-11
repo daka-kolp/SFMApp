@@ -5,20 +5,22 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.StatFs;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.PopupMenu;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.dakakolp.feapp.R;
+import com.dakakolp.feapp.ui.activities.MainActivity;
 import com.dakakolp.feapp.ui.adapters.FileListAdapter;
 import com.dakakolp.feapp.ui.adapters.adaptermodels.ListItem;
 import com.dakakolp.feapp.ui.fragments.helperclasses.HistoryEntry;
@@ -32,12 +34,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 
 public class FileManagerFragment extends Fragment {
 
-    private static final String LOG_FILE_MANAGER_FRAGMENT = "FileManagerFragment";
+    private static final String LOG_FILE_MANAGER_FRAGMENT = "LogFileManagerFragment";
     private static String sTitleForUpdate = "";
 
     private Context mContext;
@@ -49,7 +50,7 @@ public class FileManagerFragment extends Fragment {
     private FileListAdapter listAdapter;
     private DocumentSelectListener mListener;
 
-    private boolean isReceiverRegistered;
+    private boolean isBroadcastReceiverRegistered;
     private File mCurrentDir;
 
     private long mSizeLimit = 1024 * 1024 * 1024;
@@ -63,12 +64,12 @@ public class FileManagerFragment extends Fragment {
                 public void run() {
                     try {
                         if (mCurrentDir == null) {
-                            listRoots();
+                            listRootFolders();
                         } else {
                             listFiles(mCurrentDir);
                         }
                     } catch (Exception e) {
-                        Log.e(LOG_FILE_MANAGER_FRAGMENT, e.toString());
+                        Log.e(LOG_FILE_MANAGER_FRAGMENT, e.getMessage());
                     }
                 }
             };
@@ -82,23 +83,6 @@ public class FileManagerFragment extends Fragment {
 
     public FileManagerFragment() {
 
-    }
-
-    public boolean onBackPress() {
-        if (mHistory.size() > 0) {
-            HistoryEntry histEntry = mHistory.remove(mHistory.size() - 1);
-            sTitleForUpdate = histEntry.getTitle();
-            updateTitleName(sTitleForUpdate);
-            if (histEntry.getDir() != null) {
-                listFiles(histEntry.getDir());
-            } else {
-                listRoots();
-            }
-            mListView.setSelectionFromTop(histEntry.getScrollItem(), histEntry.getScrollOffset());
-            return false;
-        } else {
-            return true;
-        }
     }
 
     private void updateTitleName(String title) {
@@ -122,7 +106,7 @@ public class FileManagerFragment extends Fragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (isReceiverRegistered) {
+        if (isBroadcastReceiverRegistered) {
             mContext.unregisterReceiver(mBroadcastReceiver);
         }
         mListener = null;
@@ -133,8 +117,8 @@ public class FileManagerFragment extends Fragment {
                              ViewGroup container,
                              Bundle savedInstanceState) {
 
-        if (!isReceiverRegistered) {
-            isReceiverRegistered = true;
+        if (!isBroadcastReceiverRegistered) {
+            isBroadcastReceiverRegistered = true;
             IntentFilter filter = getIntentFilter();
             mContext.registerReceiver(mBroadcastReceiver, filter);
         }
@@ -152,7 +136,7 @@ public class FileManagerFragment extends Fragment {
             mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                    chooseItem(i);
+                    chooseItem(view, i);
                 }
             });
 
@@ -160,11 +144,9 @@ public class FileManagerFragment extends Fragment {
                 @Override
                 public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
                     return chooseLongItem(i);
-
                 }
             });
-
-            listRoots();
+            listRootFolders();
         } else {
             ViewGroup parent = (ViewGroup) mFileManagerView.getParent();
             if (parent != null) {
@@ -189,7 +171,7 @@ public class FileManagerFragment extends Fragment {
         return filter;
     }
 
-    private void chooseItem(int i) {
+    private void chooseItem(View view, int i) {
         if (i < 0 || i >= mItems.size()) {
             return;
         }
@@ -204,7 +186,7 @@ public class FileManagerFragment extends Fragment {
             if (history.getDir() != null) {
                 listFiles(history.getDir());
             } else {
-                listRoots();
+                listRootFolders();
             }
             //where setSelectionFromTop(int position = scrollItem, int y = scrollOffset)
             mListView.setSelectionFromTop(history.getScrollItem(), history.getScrollOffset());
@@ -224,22 +206,15 @@ public class FileManagerFragment extends Fragment {
             mListView.setSelection(0);
         } else {
             if (!file.canRead()) {
-                showErrorBox("AccessError");
+                showInfoBox("AccessError");
             } else if (file.length() > mSizeLimit) {
-                showErrorBox("FileUploadLimit");
+                showInfoBox("FileUploadLimit");
             } else if (!file.isDirectory()) {
                 if (mListener != null) {
-                    ArrayList<String> files = new ArrayList<String>();
-                    files.add("Abs path:\n" + file.getAbsolutePath());
-                    files.add("File size: " + StaticHelper.formatFileSize(file.length()));
-                    files.add("Can read: " + String.valueOf(file.canRead()));
-                    files.add("Can write: " + String.valueOf(file.canWrite()));
-                    files.add("Can execute: " + String.valueOf(file.canExecute()));
-                    files.add(String.format("Last modified:\n %tD, %<tr", new Date(file.lastModified())));
-                    mListener.didSelectFiles(FileManagerFragment.this, files);
+                    mListener.startDocumentSelectActivity(view, i);
                 }
             } else {
-                showErrorBox("Choose correct file.");
+                showInfoBox("Choose correct file");
             }
 
         }
@@ -253,147 +228,118 @@ public class FileManagerFragment extends Fragment {
         File file = item.getFile();
         if (file != null && !file.isDirectory()) {
             if (!file.canRead()) {
-                showErrorBox("AccessError");
+                showInfoBox("AccessError");
             } else if (file.length() > mSizeLimit) {
-                showErrorBox("FileUploadLimit");
+                showInfoBox("FileUploadLimit");
             } else if (!file.isDirectory()) {
                 if (mListener != null) {
-                    ArrayList<String> files = new ArrayList<String>();
-                    files.add("Abs path:\n" + file.getAbsolutePath());
-                    files.add("File size: " + StaticHelper.formatFileSize(file.length()));
-                    files.add("Can read: " + String.valueOf(file.canRead()));
-                    files.add("Can write: " + String.valueOf(file.canWrite()));
-                    files.add("Can execute: " + String.valueOf(file.canExecute()));
-                    files.add(String.format("Last modified:\n %tD, %<tr", new Date(file.lastModified())));
-                    mListener.didSelectFiles(FileManagerFragment.this, files);
+                    mListener.didSelectFiles(FileManagerFragment.this, getDescriptionFile(file));
                     return true;
                 }
             } else {
-                showErrorBox("Choose correct file.");
+                showInfoBox("Choose correct file.");
                 return false;
             }
         }
         return false;
     }
 
-    private void listRoots() {
+    private void showInfoBox(String error) {
+        if (mContext == null) {
+            return;
+        }
+        new AlertDialog.Builder(mContext)
+                .setTitle(mContext.getString(R.string.app_name))
+                .setMessage(error).setPositiveButton("OK", null).show();
+    }
+
+    private ArrayList<String> getDescriptionFile(File file) {
+        ArrayList<String> files = new ArrayList<>();
+        files.add("Name: " + file.getName());
+        files.add("Abs path:\n" + file.getAbsolutePath());
+        files.add("File size: " + StaticHelper.formatFileSize(file.length()));
+        files.add("Can read: " + String.valueOf(file.canRead()));
+        files.add("Can write: " + String.valueOf(file.canWrite()));
+        files.add("Can execute: " + String.valueOf(file.canExecute()));
+        files.add(String.format("Last modified:\n %tD, %<tr", new Date(file.lastModified())));
+        return files;
+    }
+
+    private void listRootFolders() {
         mCurrentDir = null;
         mItems.clear();
-        String extStorage = Environment.getExternalStorageDirectory()
-                .getAbsolutePath();
-        ListItem ext = new ListItem();
-        if (Build.VERSION.SDK_INT < 9
-                || Environment.isExternalStorageRemovable()) {
-            ext.setTitle("SdCard");
-        } else {
-            ext.setTitle("Internal Storage");
-        }
-        int icon = Build.VERSION.SDK_INT < 9
-                || Environment.isExternalStorageRemovable() ? R.drawable.ic_external_storage
-                : R.drawable.ic_home_storage;
-        ext.setIcon(icon);
-        ext.setSubtitle(getRootSubtitle(extStorage));
-        ext.setFile(Environment.getExternalStorageDirectory());
-        mItems.add(ext);
-        try {
-            BufferedReader reader = new BufferedReader(new FileReader(
-                    "/proc/mounts"));
-            String line;
-            HashMap<String, ArrayList<String>> aliases = new HashMap<String, ArrayList<String>>();
-            ArrayList<String> result = new ArrayList<String>();
-            String extDevice = null;
-            while ((line = reader.readLine()) != null) {
-                if ((!line.contains("/mnt") && !line.contains("/storage") && !line
-                        .contains("/sdcard"))
-                        || line.contains("asec")
-                        || line.contains("tmpfs") || line.contains("none")) {
-                    continue;
-                }
-                String[] info = line.split(" ");
-                if (!aliases.containsKey(info[0])) {
-                    aliases.put(info[0], new ArrayList<String>());
-                }
-                aliases.get(info[0]).add(info[1]);
-                if (info[1].equals(extStorage)) {
-                    extDevice = info[0];
-                }
-                result.add(info[1]);
-            }
-            reader.close();
-            if (extDevice != null) {
-                result.removeAll(aliases.get(extDevice));
-                for (String path : result) {
-                    try {
-                        ListItem item = new ListItem();
-                        if (path.toLowerCase().contains("sd")) {
-                            ext.setTitle("SdCard");
-                        } else {
-                            ext.setTitle("ExternalStorage");
-                        }
-                        item.setIcon(R.drawable.ic_home_storage);
-                        item.setSubtitle(getRootSubtitle(path));
-                        item.setFile(new File(path));
-                        mItems.add(item);
-                    } catch (Exception e) {
-                        Log.e(LOG_FILE_MANAGER_FRAGMENT, e.toString());
-                    }
-                }
-            }
-        } catch (Exception e) {
-            Log.e(LOG_FILE_MANAGER_FRAGMENT, e.toString());
-        }
+
+        String extStorageAbsPath = Environment.getExternalStorageDirectory().getAbsolutePath();
+//intStore
+        initInternalStore(extStorageAbsPath);
+//extStore
+        initExternalStore(extStorageAbsPath);
+//root
         ListItem fs = new ListItem();
         fs.setTitle("/");
         fs.setSubtitle("SystemRoot");
         fs.setIcon(R.drawable.ic_directory);
         fs.setFile(new File("/"));
         mItems.add(fs);
-
-        // try {
-        // File telegramPath = new
-        // File(Environment.getExternalStorageDirectory(), "Telegram");
-        // if (telegramPath.exists()) {
-        // fs = new ListItem();
-        // fs.title = "Telegram";
-        // fs.subtitle = telegramPath.toString();
-        // fs.icon = R.drawable.ic_directory;
-        // fs.file = telegramPath;
-        // mItems.add(fs);
-        // }
-        // } catch (Exception e) {
-        // FileLog.e(LOG_FILE_MANAGER_FRAGMENT", e);
-        // }
-
-        // AndroidUtilities.clearDrawableAnimation(mListView);
-        // scrolling = true;
         listAdapter.notifyDataSetChanged();
+    }
+
+    private void initInternalStore(String extStorageAbsPath) {
+        ListItem internalStorageItem = new ListItem();
+        internalStorageItem.setTitle("InternalStorage");
+        internalStorageItem.setIcon(R.drawable.ic_home_storage);
+        internalStorageItem.setSubtitle(getInfoAboutFileSystemSpace(extStorageAbsPath));
+        internalStorageItem.setFile(Environment.getExternalStorageDirectory());
+        mItems.add(internalStorageItem);
+    }
+
+    private void initExternalStore(String extStorageAbsPath) {
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader("/proc/mounts"));
+            String infoAboutMountDevices;
+            ArrayList<String> result = new ArrayList<>();
+
+            while ((infoAboutMountDevices = reader.readLine()) != null) {
+                if ((!infoAboutMountDevices.contains("/storage"))
+                        || infoAboutMountDevices.contains("asec")
+                        || infoAboutMountDevices.contains("tmpfs")
+                        || infoAboutMountDevices.contains("none")) {
+                    continue;
+                }
+                String[] info = infoAboutMountDevices.split(" ");
+
+                if (!extStorageAbsPath.contains(info[1])) {
+                    result.add(info[1]);
+                }
+
+            }
+            reader.close();
+
+            for (String path : result) {
+                ListItem item = new ListItem();
+                item.setTitle("ExternalStorage");
+                item.setIcon(R.drawable.ic_external_storage);
+                item.setSubtitle(getInfoAboutFileSystemSpace(path));
+                item.setFile(new File(path));
+                mItems.add(item);
+            }
+        } catch (Exception e) {
+            Log.e(LOG_FILE_MANAGER_FRAGMENT, e.getMessage());
+        }
     }
 
     private boolean listFiles(File dir) {
         if (!dir.canRead()) {
-            if (dir.getAbsolutePath().startsWith(
-                    Environment.getExternalStorageDirectory().toString())
-                    || dir.getAbsolutePath().startsWith("/sdcard")
-                    || dir.getAbsolutePath().startsWith("/mnt/sdcard")) {
-                if (!Environment.getExternalStorageState().equals(
-                        Environment.MEDIA_MOUNTED)
-                        && !Environment.getExternalStorageState().equals(
-                        Environment.MEDIA_MOUNTED_READ_ONLY)) {
-                    mCurrentDir = dir;
-                    mItems.clear();
-//                    String state = Environment.getExternalStorageState();
-//                    if (Environment.MEDIA_SHARED.equals(state)) {
-//
-//                    } else {
-//
-//                    }
-                    StaticHelper.clearDrawableAnimation(mListView);
-                    // scrolling = true;
-                    listAdapter.notifyDataSetChanged();
-                    return true;
-                }
+            if (dir.getAbsolutePath().startsWith(Environment.getExternalStorageDirectory().toString())
+                    && !Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)
+                    && !Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED_READ_ONLY)) {
+                mCurrentDir = dir;
+                mItems.clear();
+                StaticHelper.clearDrawableAnimation(mListView);
+                listAdapter.notifyDataSetChanged();
+                return true;
             }
-            showErrorBox("AccessError");
+            showInfoBox("DirectoryAccessError");
             return false;
         }
 
@@ -401,15 +347,17 @@ public class FileManagerFragment extends Fragment {
         try {
             files = dir.listFiles();
         } catch (Exception e) {
-            showErrorBox(e.getLocalizedMessage());
+            showInfoBox(e.getLocalizedMessage());
             return false;
         }
         if (files == null) {
-            showErrorBox("UnknownError");
+            showInfoBox("UnknownError");
             return false;
         }
         mCurrentDir = dir;
         mItems.clear();
+
+        //sort folders and files
         Arrays.sort(files, new Comparator<File>() {
             @Override
             public int compare(File lhs, File rhs) {
@@ -417,13 +365,9 @@ public class FileManagerFragment extends Fragment {
                     return lhs.isDirectory() ? -1 : 1;
                 }
                 return lhs.getName().compareToIgnoreCase(rhs.getName());
-                /*
-                 * long lm = lhs.lastModified(); long rm = lhs.lastModified();
-                 * if (lm == rm) { return 0; } else if (lm > rm) { return -1; }
-                 * else { return 1; }
-                 */
             }
         });
+
         for (File file : files) {
             if (file.getName().startsWith(".")) {
                 continue;
@@ -435,42 +379,39 @@ public class FileManagerFragment extends Fragment {
                 item.setIcon(R.drawable.ic_directory);
                 item.setSubtitle("Folder");
             } else {
-                String fname = file.getName();
-                String[] sp = fname.split("\\.");
-                String ext = sp.length > 1 ? sp[sp.length - 1] : "?";
-                item.setExt(ext);
+                String fileName = file.getName();
+                String[] sp = fileName.split("\\.");
+                String extension = sp.length > 1 ? sp[sp.length - 1] : "?";
+                item.setExtension(extension);
                 item.setSubtitle(StaticHelper.formatFileSize(file.length()));
-//                fname = fname.toLowerCase();
-//                if (fname.endsWith(".jpg") || fname.endsWith(".png")
-//                        || fname.endsWith(".gif") || fname.endsWith(".jpeg")) {
-//                    item.setThumb(file.getAbsolutePath());
-//                }
             }
             mItems.add(item);
         }
+
+//add item-back to last folder
         ListItem item = new ListItem();
-        item.setTitle("...");
-        item.setSubtitle("Folder");
+        item.setTitle("<-");
+        item.setSubtitle("");
         item.setIcon(R.drawable.ic_directory);
         item.setFile(null);
         mItems.add(0, item);
         StaticHelper.clearDrawableAnimation(mListView);
-        // scrolling = true;
+
         listAdapter.notifyDataSetChanged();
         return true;
     }
 
-
-    public void showErrorBox(String error) {
-        if (mContext == null) {
-            return;
+    private String getInfoAboutFileSystemSpace(String path) {
+        StatFs stat = new StatFs(path);
+        long total = (long) stat.getBlockCount() * (long) stat.getBlockSize();
+        long free = (long) stat.getAvailableBlocks() * (long) stat.getBlockSize();
+        if (total == 0) {
+            return null;
         }
-        new AlertDialog.Builder(mContext)
-                .setTitle(mContext.getString(R.string.app_name))
-                .setMessage(error).setPositiveButton("OK", null).show();
+        return "Free " + StaticHelper.formatFileSize(free) + " of " + StaticHelper.formatFileSize(total);
     }
 
-    public void showErrorBox(List<String> message) {
+    public void showInfoBox(List<String> message) {
         if (mContext == null) {
             return;
         }
@@ -485,16 +426,47 @@ public class FileManagerFragment extends Fragment {
                 .setPositiveButton("OK", null).show();
     }
 
-    private String getRootSubtitle(String path) {
-        StatFs stat = new StatFs(path);
-        long total = (long) stat.getBlockCount() * (long) stat.getBlockSize();
-        long free = (long) stat.getAvailableBlocks()
-                * (long) stat.getBlockSize();
-        if (total == 0) {
-            return "";
-        }
-        return "Free " + StaticHelper.formatFileSize(free) + " of " + StaticHelper.formatFileSize(total);
+    public void openPopupMenu(View view, int position) {
+        PopupMenu popupMenu = new PopupMenu(mContext, view);
+        popupMenu.inflate(R.menu.menu_item);
+        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.file_item_info:
+                        Log.d(MainActivity.class.getName(), "file_item_info ");
+                        return true;
+                    case R.id.file_item_open:
+                        Log.d(MainActivity.class.getName(), "file_item_open ");
+                        return true;
+                    case R.id.file_item_rename:
+                        Log.d(MainActivity.class.getName(), "file_item_rename ");
+                        return true;
+                    case R.id.file_item_delete:
+                        Log.d(MainActivity.class.getName(), "file_item_delete ");
+                        return true;
+
+                }
+                return false;
+            }
+        });
+        popupMenu.show();
     }
 
-
+    public boolean onBackPressed() {
+        if (mHistory.size() > 0) {
+            HistoryEntry histEntry = mHistory.remove(mHistory.size() - 1);
+            sTitleForUpdate = histEntry.getTitle();
+            updateTitleName(sTitleForUpdate);
+            if (histEntry.getDir() != null) {
+                listFiles(histEntry.getDir());
+            } else {
+                listRootFolders();
+            }
+            mListView.setSelectionFromTop(histEntry.getScrollItem(), histEntry.getScrollOffset());
+            return false;
+        } else {
+            return true;
+        }
+    }
 }

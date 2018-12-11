@@ -99,7 +99,7 @@ public class DetailCellLayout extends FrameLayout {
         layoutParams.width = AndroidUtil.dp(22);
         layoutParams.height = AndroidUtil.dp(22);
         layoutParams.topMargin = AndroidUtil.dp(34);
-        layoutParams.leftMargin = AndroidUtil.dp(38) ;
+        layoutParams.leftMargin = AndroidUtil.dp(38);
         layoutParams.rightMargin = 0;
         layoutParams.gravity = Gravity.LEFT;
         checkBox.setLayoutParams(layoutParams);
@@ -110,7 +110,7 @@ public class DetailCellLayout extends FrameLayout {
         super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(AndroidUtil.dp(64), MeasureSpec.EXACTLY));
     }
 
-    public void setDataItem(String text, String value, String type, String thumb, int resId) {
+    public void setDataItem(String text, String value, String type, int resId) {
         textView.setText(text);
         valueTextView.setText(value);
         if (type != null) {
@@ -119,12 +119,8 @@ public class DetailCellLayout extends FrameLayout {
         } else {
             typeTextView.setVisibility(GONE);
         }
-        if (thumb != null || resId != 0) {
-            if (thumb != null) {
-//                imageView.setImage(thumb, "40_40", null);
-            } else  {
-                imageView.setImageResource(resId);
-            }
+        if (resId != 0) {
+            imageView.setImageResource(resId);
             imageView.setVisibility(VISIBLE);
         } else {
             imageView.setVisibility(GONE);

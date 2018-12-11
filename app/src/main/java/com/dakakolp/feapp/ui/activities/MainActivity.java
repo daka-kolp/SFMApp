@@ -8,6 +8,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 
 import com.dakakolp.feapp.R;
 import com.dakakolp.feapp.ui.fragments.FileManagerFragment;
@@ -41,14 +42,14 @@ public class MainActivity extends AppCompatActivity implements DocumentSelectLis
         mFragmentTransaction = mFragmentManager.beginTransaction();
 
         mDirectoryFragment = new FileManagerFragment();
-        mFragmentTransaction.replace(R.id.fragment_container, mDirectoryFragment, "" + mDirectoryFragment.toString());
+        mFragmentTransaction.replace(R.id.fragment_container, mDirectoryFragment, mDirectoryFragment.toString());
         mFragmentTransaction.commit();
 
     }
 
     @Override
     public void onBackPressed() {
-        if (mDirectoryFragment.onBackPress()) {
+        if (mDirectoryFragment.onBackPressed()) {
             super.onBackPressed();
         }
     }
@@ -100,14 +101,15 @@ public class MainActivity extends AppCompatActivity implements DocumentSelectLis
     }
 
     @Override
-    public void startDocumentSelectActivity() {
+    public void startDocumentSelectActivity(View view, int position) {
+        mDirectoryFragment.openPopupMenu(view, position);
 
     }
 
     @Override
     public void didSelectFiles(FileManagerFragment activity,
                                ArrayList<String> files) {
-        mDirectoryFragment.showErrorBox(files);
+        mDirectoryFragment.showInfoBox(files);
     }
 
     @Override

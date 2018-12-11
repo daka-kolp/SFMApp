@@ -51,12 +51,12 @@ public class FileListAdapter extends BaseFragmentAdapter {
         ListItem item = mItems.get(position);
         if (item.getIcon() != 0) {
             textDetailCell.setDataItem(item.getTitle(),
-                            item.getSubtitle(), null, null, item.getIcon());
+                            item.getSubtitle(), null,  item.getIcon());
         } else {
-            String type = item.getExt().toUpperCase().substring(0,
-                    Math.min(item.getExt().length(), 4));
+            String type = item.getExtension().toUpperCase().substring(0,
+                    Math.min(item.getExtension().length(), 4));
             textDetailCell.setDataItem(item.getTitle(),
-                            item.getSubtitle(), type, item.getThumb(), 0);
+                            item.getSubtitle(), type,  0);
         }
         // if (item.file != null && actionBar.isActionModeShowed()) {
         // textDetailCell.setChecked(selectedFiles.containsKey(item.file.toString()),

@@ -3,71 +3,62 @@ package com.dakakolp.feapp.ui.adapters.adaptermodels;
 import java.io.File;
 
 public class ListItem {
-    private int icon;
-    private String title;
-    private String subtitle;
-    private String ext;
-    private String thumb;
-    private File file;
+    private int mIcon;
+    private String mTitle;
+    private String mSubtitle;
+    private String mExtension;
+    private File mFile;
 
     public ListItem() {
 
     }
 
-    public ListItem(int icon, String title, String subtitle, String ext, String thumb, File file) {
-        this.icon = icon;
-        this.title = title;
-        this.subtitle = subtitle;
-        this.ext = ext;
-        this.thumb = thumb;
-        this.file = file;
+    public ListItem(int icon, String title, String subtitle, String ext, File file) {
+        this.mIcon = icon;
+        this.mTitle = title;
+        this.mSubtitle = subtitle;
+        this.mExtension = ext;
+        this.mFile = file;
     }
 
     public int getIcon() {
-        return icon;
+        return mIcon;
     }
 
     public void setIcon(int icon) {
-        this.icon = icon;
+        this.mIcon = icon;
     }
 
     public String getTitle() {
-        return title;
+        return mTitle;
     }
 
     public void setTitle(String title) {
-        this.title = title;
+        this.mTitle = title;
     }
 
     public String getSubtitle() {
-        return subtitle;
+        return mSubtitle;
     }
 
     public void setSubtitle(String subtitle) {
-        this.subtitle = subtitle;
+        this.mSubtitle = subtitle;
     }
 
-    public String getExt() {
-        return ext;
+    public String getExtension() {
+        return mExtension;
     }
 
-    public void setExt(String ext) {
-        this.ext = ext;
+    public void setExtension(String extension) {
+        this.mExtension = extension;
     }
 
-    public String getThumb() {
-        return thumb;
-    }
-
-    public void setThumb(String thumb) {
-        this.thumb = thumb;
-    }
 
     public File getFile() {
-        return file;
+        return mFile;
     }
 
     public void setFile(File file) {
-        this.file = file;
+        this.mFile = file;
     }
 }
