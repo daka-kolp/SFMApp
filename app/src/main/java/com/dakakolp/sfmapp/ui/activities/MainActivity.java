@@ -17,34 +17,24 @@ import com.dakakolp.sfmapp.ui.fragments.interfaces.DocumentSelectListener;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements DocumentSelectListener {
-
     private ActionBar mActionBar;
     private FragmentManager mFragmentManager;
     private FragmentTransaction mFragmentTransaction;
     private FileManagerFragment mDirectoryFragment;
-
     private boolean mIsSelectMode;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-
         mActionBar = getSupportActionBar();
-
         if (mActionBar != null) {
             mActionBar.setTitle("Simple file manager");
         }
-
-
         mFragmentManager = getSupportFragmentManager();
         mFragmentTransaction = mFragmentManager.beginTransaction();
-
         mDirectoryFragment = new FileManagerFragment();
         mFragmentTransaction.replace(R.id.fragment_container, mDirectoryFragment, mDirectoryFragment.toString());
         mFragmentTransaction.commit();
-
     }
 
     @Override
