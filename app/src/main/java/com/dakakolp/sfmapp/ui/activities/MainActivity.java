@@ -23,7 +23,8 @@ public class MainActivity extends AppCompatActivity implements DocumentSelectLis
     private FragmentTransaction mFragmentTransaction;
     private FileManagerFragment mDirectoryFragment;
 
-    private boolean mIsSelectMode;
+    private boolean mIsCopyMode;
+    private boolean mIsMoveMode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,16 +65,24 @@ public class MainActivity extends AppCompatActivity implements DocumentSelectLis
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.file_manager_menu_select:
+
+            case R.id.file_manager_menu_move:
 
                 break;
-            case R.id.file_manager_menu_select_all:
+            case R.id.file_manager_menu_copy:
 
                 break;
-            case R.id.file_manager_menu_clear_selection:
+            case R.id.file_manager_menu_cancel:
+                if (mIsMoveMode) {
+
+
+                } else if (mIsCopyMode) {
+
+                }
+                break;
+            case R.id.file_manager_menu_about:
 
                 break;
-            case R.id.file_manager_menu_delete:
 
         }
         return super.onOptionsItemSelected(item);
@@ -81,21 +90,25 @@ public class MainActivity extends AppCompatActivity implements DocumentSelectLis
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        MenuItem selectAll = menu.findItem(R.id.file_manager_menu_select_all);
-        MenuItem clearSelection = menu.findItem(R.id.file_manager_menu_clear_selection);
-        MenuItem select = menu.findItem(R.id.file_manager_menu_select);
-        MenuItem delete = menu.findItem(R.id.file_manager_menu_delete);
-
-        if (mIsSelectMode) {
-            select.setVisible(false);
-            selectAll.setVisible(true);
-            clearSelection.setVisible(true);
-            delete.setVisible(true);
+        MenuItem copy = menu.findItem(R.id.file_manager_menu_copy);
+        MenuItem move = menu.findItem(R.id.file_manager_menu_move);
+        MenuItem cancel = menu.findItem(R.id.file_manager_menu_cancel);
+        MenuItem about = menu.findItem(R.id.file_manager_menu_about);
+        if (mIsCopyMode) {
+            copy.setVisible(true);
+            move.setVisible(false);
+            cancel.setVisible(true);
+            about.setVisible(false);
+        } else if (mIsMoveMode) {
+            copy.setVisible(false);
+            move.setVisible(true);
+            cancel.setVisible(true);
+            about.setVisible(false);
         } else {
-            select.setVisible(true);
-            clearSelection.setVisible(false);
-            selectAll.setVisible(false);
-            delete.setVisible(false);
+            copy.setVisible(false);
+            move.setVisible(false);
+            cancel.setVisible(false);
+            about.setVisible(true);
         }
         return super.onPrepareOptionsMenu(menu);
     }

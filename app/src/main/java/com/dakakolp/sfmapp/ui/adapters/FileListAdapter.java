@@ -9,7 +9,6 @@ import com.dakakolp.sfmapp.ui.fragments.layouts.DetailCellLayout;
 
 import java.util.List;
 
-
 public class FileListAdapter extends BaseFragmentAdapter {
     private Context mContext;
     private List<ListItem> mItems;
@@ -58,12 +57,7 @@ public class FileListAdapter extends BaseFragmentAdapter {
             textDetailCell.setDataItem(item.getTitle(),
                             item.getSubtitle(), type,  0);
         }
-        // if (item.file != null && actionBar.isActionModeShowed()) {
-        // textDetailCell.setChecked(selectedFiles.containsKey(item.file.toString()),
-        // !scrolling);
-        // } else {
-        // textDetailCell.setChecked(false, !scrolling);
-        // }
+
         return convertView;
     }
 }

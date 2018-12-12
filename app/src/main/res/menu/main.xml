@@ -1,17 +1,18 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
+
     <item
-        android:id="@+id/file_manager_menu_select"
-        android:title="@string/select" />
+        android:id="@+id/file_manager_menu_copy"
+        android:title="@string/action_copy" />
     <item
-        android:id="@+id/file_manager_menu_select_all"
-        android:title="@string/select_all" />
+        android:id="@+id/file_manager_menu_move"
+        android:title="@string/action_move"
+        app:showAsAction="ifRoom" />
     <item
-        android:id="@+id/file_manager_menu_clear_selection"
-        android:title="@string/clear_selection" />
+        android:id="@+id/file_manager_menu_cancel"
+        android:title="@string/action_cancel" />
     <item
-        android:id="@+id/file_manager_menu_delete"
-        android:title="@string/delete"
-        android:icon="@android:drawable/ic_delete"
-        app:showAsAction="ifRoom"/>
+        android:id="@+id/file_manager_menu_about"
+        android:title="@string/action_about" />
+
 </menu>

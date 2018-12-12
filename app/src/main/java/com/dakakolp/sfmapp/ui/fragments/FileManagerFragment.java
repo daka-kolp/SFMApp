@@ -61,8 +61,6 @@ public class FileManagerFragment extends Fragment {
 
     private long mSizeLimit = 1024 * 1024 * 1024;
 
-    //private HashMap<String, ListItem> selectedFiles = new HashMap<String, ListItem>();
-
     private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context arg, Intent intent) {
@@ -466,11 +464,27 @@ public class FileManagerFragment extends Fragment {
                         showDeleteDialog(position);
 
                         return true;
+                    case R.id.file_item_move:
+                        move(position);
+
+                        return true;
+                    case R.id.file_item_copy:
+                        copy(position);
+
+                        return true;
                 }
                 return false;
             }
         });
         popupMenu.show();
+    }
+
+    private void move(int position) {
+
+    }
+
+    private void copy(int position) {
+
     }
 
     private void showRenameDialog(int position) {
@@ -494,7 +508,7 @@ public class FileManagerFragment extends Fragment {
                         if (!TextUtils.isEmpty(newName)) {
                             String path = file.getAbsolutePath()
                                     .substring(0, file.getAbsolutePath().lastIndexOf("/") + 1);
-                            if(file.renameTo(new File(path + newName))) {
+                            if (file.renameTo(new File(path + newName))) {
                                 listFiles(mCurrentDir);
                             } else {
                                 // TODO: 12/11/18 doesn't want work with SDCard

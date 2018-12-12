@@ -2,10 +2,6 @@
     <string name="app_name">Simple File Manager</string>
     <string name="action_settings">Settings</string>
 
-    <string name="select">Select</string>
-    <string name="select_all">Select All</string>
-    <string name="clear_selection">Clear selection</string>
-
     <string name="delete">Delete</string>
     <string name="rename">Rename</string>
     <string name="info">Description</string>
@@ -13,6 +9,8 @@
 
     <string name="free_of_total_space">Free %1$s of %2$s</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="action_move">Move To</string>
+    <string name="action_copy">Copy To</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_about">About</string>
 </resources>

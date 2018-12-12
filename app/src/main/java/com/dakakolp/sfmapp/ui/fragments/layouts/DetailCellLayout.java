@@ -123,8 +123,6 @@ public class DetailCellLayout extends FrameLayout {
         }
     }
 
-
-
     public void setChecked(boolean checked, boolean animated) {
         if (mCBSelectItem.getVisibility() != VISIBLE) {
             mCBSelectItem.setVisibility(VISIBLE);
