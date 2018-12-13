@@ -96,7 +96,7 @@ public class MainActivity extends AppCompatActivity implements DocumentSelectLis
     @Override
     public void didSelectFiles(FileManagerFragment activity,
                                ArrayList<String> files) {
-        mDirectoryFragment.showInfoBox(files);
+        mDirectoryFragment.showInfoDialog(files);
     }
 
     @Override

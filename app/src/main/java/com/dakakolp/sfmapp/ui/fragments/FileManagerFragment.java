@@ -38,12 +38,7 @@ import com.dakakolp.sfmapp.ui.fragments.layouts.AndroidUtil;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -293,8 +288,8 @@ public class FileManagerFragment extends Fragment {
 
 
     /**
-    *@return data list about file. Element (1) - absPath to the file
-    */
+     * @return data list about file. Element (1) - absPath to the file
+     */
     private ArrayList<String> getDescriptionFile(File file) {
         ArrayList<String> data = new ArrayList<>();
         data.add("Name: " + file.getName());
@@ -362,7 +357,8 @@ public class FileManagerFragment extends Fragment {
                 item.setTitle("ExternalStorage");
                 item.setIcon(R.drawable.ic_external_storage);
                 item.setSubtitle(getInfoAboutFileSystemSpace(path));
-                item.setFile(new File(path));
+                File extStorage = new File(path);
+                item.setFile(extStorage);
                 mItems.add(item);
             }
         } catch (Exception e) {
@@ -467,7 +463,7 @@ public class FileManagerFragment extends Fragment {
 
     public static final String PATH = "path to file";
 
-    public void showInfoBox(final List<String> message) {
+    public void showInfoDialog(final List<String> message) {
         if (mContext == null) {
             return;
         }
@@ -489,7 +485,7 @@ public class FileManagerFragment extends Fragment {
                         clipData = ClipData.newPlainText(PATH, path);
                         clipboardManager.setPrimaryClip(clipData);
 
-                        Toast.makeText(mContext,"AbsPath has been copied to buffer", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(mContext, "AbsPath has been copied to buffer", Toast.LENGTH_SHORT).show();
                     }
                 })
                 .setPositiveButton("OK", null).show();
@@ -506,9 +502,9 @@ public class FileManagerFragment extends Fragment {
                     case R.id.file_item_info:
                         showInfoAbout(position);
                         return true;
-/*                    case R.id.file_item_open:
+                    case R.id.file_item_open:
                         open(position);
-                        return true;*/
+                        return true;
                     case R.id.file_item_rename:
                         showRenameDialog(position);
                         return true;
@@ -529,6 +525,9 @@ public class FileManagerFragment extends Fragment {
         popupMenu.show();
     }
 
+    private void open(int position) {
+
+    }
 
     private void showRenameDialog(int position) {
         final File file = mItems.get(position).getFile();
@@ -578,13 +577,10 @@ public class FileManagerFragment extends Fragment {
                 .show();
     }
 
-/*    private void open(int position) {
-
-    }*/
-
     private void moveFile(final int position) {
         final File file = mItems.get(position).getFile();
-        final EditText inputNewLocation = AndroidUtil.initEditText(mContext, file.getParent());
+        final EditText inputNewLocation = AndroidUtil.initEditText(mContext, null);
+        fillEditBox(inputNewLocation);
         new AlertDialog.Builder(mContext)
                 .setTitle(mContext.getString(R.string.app_name))
                 .setMessage("Do you want to move file to?")
@@ -613,7 +609,9 @@ public class FileManagerFragment extends Fragment {
 
     private void copyFile(int position) {
         final File file = mItems.get(position).getFile();
-        final EditText inputLocationForCopy = AndroidUtil.initEditText(mContext, file.getParent());
+        final EditText inputLocationForCopy = AndroidUtil.initEditText(mContext, null);
+        fillEditBox(inputLocationForCopy);
+
         new AlertDialog.Builder(mContext)
                 .setTitle(mContext.getString(R.string.app_name))
                 .setMessage("Do you want to copy file to?")
@@ -622,34 +620,26 @@ public class FileManagerFragment extends Fragment {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         String nameTargetLocation = inputLocationForCopy.getText().toString();
-                        CopyFileAsyncTask asyncTask = new CopyFileAsyncTask();
-                        asyncTask.execute(nameTargetLocation, file.getName());
-                        if (!TextUtils.isEmpty(nameTargetLocation)) {
-                            try {
-                                // TODO: 12/13/18  AsyncTask
-                                File fileTargetLocation = new File(nameTargetLocation, file.getName());
-
-                                InputStream in = new FileInputStream(file);
-                                OutputStream out = new FileOutputStream(fileTargetLocation);
-
-                                byte[] buf = new byte[1024];
-                                int len;
-
-                                while ((len = in.read(buf)) > 0) {
-                                    out.write(buf, 0, len);
-                                }
-
-                                in.close();
-                                out.close();
-                                Toast.makeText(mContext, "You have copied the file to " + nameTargetLocation, Toast.LENGTH_SHORT).show();
-                            } catch (IOException e) {
-                                Toast.makeText(mContext, "IOException: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                            }
-                        }
+                        CopyFileAsyncTask asyncTask = new CopyFileAsyncTask(nameTargetLocation, file, mContext);
+                        asyncTask.execute();
                     }
                 })
                 .setNegativeButton("CANCEL", null)
                 .show();
+    }
+
+    private void fillEditBox(EditText inputLoc) {
+        ClipboardManager clipboardManager =
+                (ClipboardManager) mContext.getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData data = clipboardManager.getPrimaryClip();
+        if (data != null) {
+            ClipData.Item item = data.getItemAt(0);
+            String text = item.getText().toString();
+            inputLoc.setText(text);
+            Toast.makeText(mContext, text, Toast.LENGTH_LONG).show();
+        } else {
+            Toast.makeText(mContext, "Buffer is empty", Toast.LENGTH_LONG).show();
+        }
     }
 
     public boolean onBackPressed() {
