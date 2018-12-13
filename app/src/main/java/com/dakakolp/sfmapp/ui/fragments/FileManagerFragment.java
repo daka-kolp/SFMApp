@@ -1,5 +1,4 @@
 package com.dakakolp.sfmapp.ui.fragments;
-
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.ClipData;
@@ -35,7 +34,6 @@ import com.dakakolp.sfmapp.ui.fragments.helpers.FormatString;
 import com.dakakolp.sfmapp.ui.fragments.helpers.HistoryEntry;
 import com.dakakolp.sfmapp.ui.fragments.interfaces.DocumentSelectListener;
 import com.dakakolp.sfmapp.ui.fragments.layouts.AndroidUtil;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -44,26 +42,19 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
-
 public class FileManagerFragment extends Fragment {
-
     private static final String LOG_FILE_MANAGER_FRAGMENT = "LogFileManagerFragment";
     private static String sTitleForUpdate = "";
-
     private Context mContext;
     private View mFileManagerView;
     private ArrayList<HistoryEntry> mHistory = new ArrayList<>();
-
     private ListView mListView;
     private ArrayList<ListItem> mItems = new ArrayList<>();
     private FileListAdapter mListAdapter;
     private DocumentSelectListener mListener;
-
     private boolean isBroadcastReceiverRegistered;
     private File mCurrentDir;
-
     private long mSizeLimit = 1024 * 1024 * 1024;
-
     private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context arg, Intent intent) {
@@ -87,45 +78,14 @@ public class FileManagerFragment extends Fragment {
             }
         }
     };
-
-    public FileManagerFragment() {
-
-    }
-
     public File getCurrentDir() {
         return mCurrentDir;
     }
-
-    public static final String MOVE_MODE = "move_mode";
-    public static final String COPY_MODE = "copy_mode";
-    private boolean mIsMoveMode;
-    private boolean mIsCopyMode;
-
-    public static FileManagerFragment newInstance(boolean isMoveMode, boolean isCopyMode) {
-        FileManagerFragment managerFragment = new FileManagerFragment();
-        Bundle bundle = new Bundle();
-        bundle.putBoolean(MOVE_MODE, isMoveMode);
-        bundle.putBoolean(COPY_MODE, isCopyMode);
-        managerFragment.setArguments(bundle);
-        return managerFragment;
-    }
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mIsMoveMode = getArguments().getBoolean(MOVE_MODE);
-            mIsCopyMode = getArguments().getBoolean(COPY_MODE);
-        }
-
-    }
-
     private void updateTitleName(String title) {
         if (mListener != null) {
             mListener.updateAppBarName(title);
         }
     }
-
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -137,7 +97,6 @@ public class FileManagerFragment extends Fragment {
                     + " must implement DocumentSelectListener");
         }
     }
-
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -146,35 +105,29 @@ public class FileManagerFragment extends Fragment {
         }
         mListener = null;
     }
-
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container,
                              Bundle savedInstanceState) {
-
         if (!isBroadcastReceiverRegistered) {
             isBroadcastReceiverRegistered = true;
             IntentFilter filter = getIntentFilter();
             mContext.registerReceiver(mBroadcastReceiver, filter);
         }
-
         if (mFileManagerView == null) {
             mFileManagerView = inflater.inflate(
                     R.layout.document_select_layout,
                     container,
                     false);
-
             mListAdapter = new FileListAdapter(mContext, mItems);
             mListView = mFileManagerView.findViewById(R.id.listView);
             mListView.setAdapter(mListAdapter);
-
             mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                     chooseItem(view, i);
                 }
             });
-
             mListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
                 @Override
                 public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
@@ -190,7 +143,6 @@ public class FileManagerFragment extends Fragment {
         }
         return mFileManagerView;
     }
-
     private IntentFilter getIntentFilter() {
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_MEDIA_BAD_REMOVAL);
@@ -205,7 +157,6 @@ public class FileManagerFragment extends Fragment {
         filter.addDataScheme("file");
         return filter;
     }
-
     private void chooseItem(View view, int i) {
         if (i < 0 || i >= mItems.size()) {
             return;
@@ -213,7 +164,6 @@ public class FileManagerFragment extends Fragment {
         HistoryEntry history;
         ListItem item = mItems.get(i);
         File file = item.getFile();
-        //if return from folder, change title
         if (file == null) {
             history = mHistory.remove(mHistory.size() - 1);
             sTitleForUpdate = history.getTitle();
@@ -223,7 +173,6 @@ public class FileManagerFragment extends Fragment {
             } else {
                 listRootFolders();
             }
-            //where setSelectionFromTop(int position = scrollItem, int y = scrollOffset)
             mListView.setSelectionFromTop(history.getScrollItem(), history.getScrollOffset());
         } else if (file.isDirectory()) {
             history = new HistoryEntry();
@@ -251,10 +200,8 @@ public class FileManagerFragment extends Fragment {
             } else {
                 showErrorInfoBox("Choose correct file");
             }
-
         }
     }
-
     private boolean showInfoAbout(int i) {
         if (i < 0 || i >= mItems.size()) {
             return false;
@@ -276,7 +223,6 @@ public class FileManagerFragment extends Fragment {
         }
         return false;
     }
-
     private void showErrorInfoBox(String error) {
         if (mContext == null) {
             return;
@@ -285,11 +231,6 @@ public class FileManagerFragment extends Fragment {
                 .setTitle(mContext.getString(R.string.app_name))
                 .setMessage(error).setPositiveButton("OK", null).show();
     }
-
-
-    /**
-     * @return data list about file. Element (1) - absPath to the file
-     */
     private ArrayList<String> getDescriptionFile(File file) {
         ArrayList<String> data = new ArrayList<>();
         data.add("Name: " + file.getName());
@@ -301,17 +242,12 @@ public class FileManagerFragment extends Fragment {
         data.add(String.format("Last modified:\n %tD, %<tr", new Date(file.lastModified())));
         return data;
     }
-
     private void listRootFolders() {
         mCurrentDir = null;
         mItems.clear();
-
         String extStorageAbsPath = Environment.getExternalStorageDirectory().getAbsolutePath();
-//intStore
         initInternalStore(extStorageAbsPath);
-//extStore
         initExternalStore(extStorageAbsPath);
-//root
         ListItem fs = new ListItem();
         fs.setTitle("/");
         fs.setSubtitle("SystemRoot");
@@ -320,7 +256,6 @@ public class FileManagerFragment extends Fragment {
         mItems.add(fs);
         mListAdapter.notifyDataSetChanged();
     }
-
     private void initInternalStore(String extStorageAbsPath) {
         ListItem internalStorageItem = new ListItem();
         internalStorageItem.setTitle("InternalStorage");
@@ -329,13 +264,11 @@ public class FileManagerFragment extends Fragment {
         internalStorageItem.setFile(Environment.getExternalStorageDirectory());
         mItems.add(internalStorageItem);
     }
-
     private void initExternalStore(String extStorageAbsPath) {
         try {
             BufferedReader reader = new BufferedReader(new FileReader("/proc/mounts"));
             String infoAboutMountDevices;
             ArrayList<String> result = new ArrayList<>();
-
             while ((infoAboutMountDevices = reader.readLine()) != null) {
                 if ((!infoAboutMountDevices.contains("/storage"))
                         || infoAboutMountDevices.contains("asec")
@@ -344,14 +277,11 @@ public class FileManagerFragment extends Fragment {
                     continue;
                 }
                 String[] info = infoAboutMountDevices.split(" ");
-
                 if (!extStorageAbsPath.contains(info[1])) {
                     result.add(info[1]);
                 }
-
             }
             reader.close();
-
             for (String path : result) {
                 ListItem item = new ListItem();
                 item.setTitle("ExternalStorage");
@@ -365,7 +295,6 @@ public class FileManagerFragment extends Fragment {
             Log.e(LOG_FILE_MANAGER_FRAGMENT, e.getMessage());
         }
     }
-
     private boolean listFiles(File dir) {
         if (!dir.canRead()) {
             if (dir.getAbsolutePath().startsWith(Environment.getExternalStorageDirectory().toString())
@@ -380,7 +309,6 @@ public class FileManagerFragment extends Fragment {
             showErrorInfoBox("DirectoryAccessError");
             return false;
         }
-
         File[] files;
         try {
             files = dir.listFiles();
@@ -393,20 +321,13 @@ public class FileManagerFragment extends Fragment {
             return false;
         }
         mCurrentDir = dir;
-        mItems.clear();
-
-        //sort folders and files
+        mItems.clear();  
         sortFiles(files);
-
         initListItems(files);
-
-
-//add item-back to last folder
         initFolderBack();
         mListAdapter.notifyDataSetChanged();
         return true;
     }
-
     private void sortFiles(File[] files) {
         Arrays.sort(files, new Comparator<File>() {
             @Override
@@ -418,7 +339,6 @@ public class FileManagerFragment extends Fragment {
             }
         });
     }
-
     private void initListItems(File[] files) {
         for (File file : files) {
             if (file.getName().startsWith(".")) {
@@ -440,7 +360,6 @@ public class FileManagerFragment extends Fragment {
             mItems.add(item);
         }
     }
-
     private void initFolderBack() {
         ListItem item = new ListItem();
         item.setTitle("<-");
@@ -450,7 +369,6 @@ public class FileManagerFragment extends Fragment {
         mItems.add(0, item);
         AndroidUtil.clearDrawableAnimation(mListView);
     }
-
     private String getInfoAboutFileSystemSpace(String path) {
         StatFs stat = new StatFs(path);
         long total = (long) stat.getBlockCount() * (long) stat.getBlockSize();
@@ -460,9 +378,7 @@ public class FileManagerFragment extends Fragment {
         }
         return "Free " + FormatString.formatFileSize(free) + " of " + FormatString.formatFileSize(total);
     }
-
     public static final String PATH = "path to file";
-
     public void showInfoDialog(final List<String> message) {
         if (mContext == null) {
             return;
@@ -490,9 +406,7 @@ public class FileManagerFragment extends Fragment {
                 })
                 .setPositiveButton("OK", null).show();
     }
-
     public void openPopupMenu(View view, final int position) {
-
         PopupMenu popupMenu = new PopupMenu(mContext, view, GravityCompat.END);
         popupMenu.getMenuInflater().inflate(R.menu.menu_item, popupMenu.getMenu());
         popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
@@ -501,9 +415,6 @@ public class FileManagerFragment extends Fragment {
                 switch (item.getItemId()) {
                     case R.id.file_item_info:
                         showInfoAbout(position);
-                        return true;
-                    case R.id.file_item_open:
-                        open(position);
                         return true;
                     case R.id.file_item_rename:
                         showRenameDialog(position);
@@ -516,7 +427,6 @@ public class FileManagerFragment extends Fragment {
                         return true;
                     case R.id.file_item_copy:
                         copyFile(position);
-
                         return true;
                 }
                 return false;
@@ -524,11 +434,6 @@ public class FileManagerFragment extends Fragment {
         });
         popupMenu.show();
     }
-
-    private void open(int position) {
-
-    }
-
     private void showRenameDialog(int position) {
         final File file = mItems.get(position).getFile();
         final EditText inputNewName = AndroidUtil.initEditText(mContext, file.getName());
@@ -549,14 +454,12 @@ public class FileManagerFragment extends Fragment {
                                 // TODO: 12/11/18 doesn't want work with SDCard
                                 Toast.makeText(mContext, "You can't rename the file...", Toast.LENGTH_SHORT).show();
                             }
-
                         }
                     }
                 })
                 .setNegativeButton("CANCEL", null)
                 .show();
     }
-
     private void showDeleteDialog(final int position) {
         new AlertDialog.Builder(mContext)
                 .setTitle(mContext.getString(R.string.app_name))
@@ -567,8 +470,7 @@ public class FileManagerFragment extends Fragment {
                         File file = mItems.get(position).getFile();
                         if (file.delete()) {
                             listFiles(mCurrentDir);
-                        } else {
-                            // TODO: 12/11/18 doesn't want work with SDCard
+                        } else {                            
                             Toast.makeText(mContext, "You can't delete the file...", Toast.LENGTH_SHORT).show();
                         }
                     }
@@ -576,7 +478,6 @@ public class FileManagerFragment extends Fragment {
                 .setNegativeButton("CANCEL", null)
                 .show();
     }
-
     private void moveFile(final int position) {
         final File file = mItems.get(position).getFile();
         final EditText inputNewLocation = AndroidUtil.initEditText(mContext, null);
@@ -595,23 +496,19 @@ public class FileManagerFragment extends Fragment {
                                 mCurrentDir = new File(path);
                                 updateTitleName(mCurrentDir.getName());
                                 listFiles(mCurrentDir);
-                            } else {
-                                // TODO: 12/11/18 doesn't want work with SDCard
+                            } else {  
                                 Toast.makeText(mContext, "You can't move the file...", Toast.LENGTH_SHORT).show();
                             }
-
                         }
                     }
                 })
                 .setNegativeButton("CANCEL", null)
                 .show();
     }
-
     private void copyFile(int position) {
         final File file = mItems.get(position).getFile();
         final EditText inputLocationForCopy = AndroidUtil.initEditText(mContext, null);
         fillEditBox(inputLocationForCopy);
-
         new AlertDialog.Builder(mContext)
                 .setTitle(mContext.getString(R.string.app_name))
                 .setMessage("Do you want to copy file to?")
@@ -627,7 +524,6 @@ public class FileManagerFragment extends Fragment {
                 .setNegativeButton("CANCEL", null)
                 .show();
     }
-
     private void fillEditBox(EditText inputLoc) {
         ClipboardManager clipboardManager =
                 (ClipboardManager) mContext.getSystemService(Context.CLIPBOARD_SERVICE);
@@ -641,7 +537,6 @@ public class FileManagerFragment extends Fragment {
             Toast.makeText(mContext, "Buffer is empty", Toast.LENGTH_LONG).show();
         }
     }
-
     public boolean onBackPressed() {
         if (mHistory.size() > 0) {
             HistoryEntry histEntry = mHistory.remove(mHistory.size() - 1);
@@ -658,7 +553,6 @@ public class FileManagerFragment extends Fragment {
             return true;
         }
     }
-
     public void mkDir() {
         final EditText inputNewDir = AndroidUtil.initEditText(mContext, null);
         new AlertDialog.Builder(mContext)
@@ -682,6 +576,4 @@ public class FileManagerFragment extends Fragment {
                 .setNegativeButton("CANCEL", null)
                 .show();
     }
-
-
 }
