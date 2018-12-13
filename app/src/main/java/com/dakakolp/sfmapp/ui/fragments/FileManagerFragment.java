@@ -2,6 +2,8 @@ package com.dakakolp.sfmapp.ui.fragments;
 
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -93,6 +95,10 @@ public class FileManagerFragment extends Fragment {
 
     public FileManagerFragment() {
 
+    }
+
+    public File getCurrentDir() {
+        return mCurrentDir;
     }
 
     public static final String MOVE_MODE = "move_mode";
@@ -240,15 +246,15 @@ public class FileManagerFragment extends Fragment {
             mListView.setSelection(0);
         } else {
             if (!file.canRead()) {
-                showInfoBox("AccessError");
+                showErrorInfoBox("AccessError");
             } else if (file.length() > mSizeLimit) {
-                showInfoBox("FileUploadLimit");
+                showErrorInfoBox("FileUploadLimit");
             } else if (!file.isDirectory()) {
                 if (mListener != null) {
                     mListener.startDocumentSelectActivity(view, i);
                 }
             } else {
-                showInfoBox("Choose correct file");
+                showErrorInfoBox("Choose correct file");
             }
 
         }
@@ -262,21 +268,21 @@ public class FileManagerFragment extends Fragment {
         File file = item.getFile();
         if (file != null) {
             if (!file.canRead()) {
-                showInfoBox("AccessError");
+                showErrorInfoBox("AccessError");
             } else if (file.length() > mSizeLimit) {
-                showInfoBox("FileUploadLimit");
+                showErrorInfoBox("FileUploadLimit");
             } else if (mListener != null) {
                 mListener.didSelectFiles(FileManagerFragment.this, getDescriptionFile(file));
                 return true;
             } else {
-                showInfoBox("Choose correct file.");
+                showErrorInfoBox("Choose correct file.");
                 return false;
             }
         }
         return false;
     }
 
-    private void showInfoBox(String error) {
+    private void showErrorInfoBox(String error) {
         if (mContext == null) {
             return;
         }
@@ -285,16 +291,20 @@ public class FileManagerFragment extends Fragment {
                 .setMessage(error).setPositiveButton("OK", null).show();
     }
 
+
+    /**
+    *@return data list about file. Element (1) - absPath to the file
+    */
     private ArrayList<String> getDescriptionFile(File file) {
-        ArrayList<String> files = new ArrayList<>();
-        files.add("Name: " + file.getName());
-        files.add("Abs path:\n" + file.getAbsolutePath());
-        files.add("File size: " + FormatString.formatFileSize(file.length()));
-        files.add("Can read: " + String.valueOf(file.canRead()));
-        files.add("Can write: " + String.valueOf(file.canWrite()));
-        files.add("Can execute: " + String.valueOf(file.canExecute()));
-        files.add(String.format("Last modified:\n %tD, %<tr", new Date(file.lastModified())));
-        return files;
+        ArrayList<String> data = new ArrayList<>();
+        data.add("Name: " + file.getName());
+        data.add("Abs path:\n" + file.getAbsolutePath());
+        data.add("File size: " + FormatString.formatFileSize(file.length()));
+        data.add("Can read: " + String.valueOf(file.canRead()));
+        data.add("Can write: " + String.valueOf(file.canWrite()));
+        data.add("Can execute: " + String.valueOf(file.canExecute()));
+        data.add(String.format("Last modified:\n %tD, %<tr", new Date(file.lastModified())));
+        return data;
     }
 
     private void listRootFolders() {
@@ -371,7 +381,7 @@ public class FileManagerFragment extends Fragment {
                 mListAdapter.notifyDataSetChanged();
                 return true;
             }
-            showInfoBox("DirectoryAccessError");
+            showErrorInfoBox("DirectoryAccessError");
             return false;
         }
 
@@ -379,11 +389,11 @@ public class FileManagerFragment extends Fragment {
         try {
             files = dir.listFiles();
         } catch (Exception e) {
-            showInfoBox(e.getLocalizedMessage());
+            showErrorInfoBox(e.getLocalizedMessage());
             return false;
         }
         if (files == null) {
-            showInfoBox("UnknownError");
+            showErrorInfoBox("UnknownError");
             return false;
         }
         mCurrentDir = dir;
@@ -455,7 +465,9 @@ public class FileManagerFragment extends Fragment {
         return "Free " + FormatString.formatFileSize(free) + " of " + FormatString.formatFileSize(total);
     }
 
-    public void showInfoBox(List<String> message) {
+    public static final String PATH = "path to file";
+
+    public void showInfoBox(final List<String> message) {
         if (mContext == null) {
             return;
         }
@@ -467,6 +479,19 @@ public class FileManagerFragment extends Fragment {
         new AlertDialog.Builder(mContext)
                 .setTitle(mContext.getString(R.string.app_name))
                 .setMessage(stringBuilder.toString())
+                .setNeutralButton("Copy path to buffer", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        ClipboardManager clipboardManager =
+                                (ClipboardManager) mContext.getSystemService(Context.CLIPBOARD_SERVICE);
+                        ClipData clipData;
+                        String path = message.get(1).substring(message.get(1).indexOf("/"));
+                        clipData = ClipData.newPlainText(PATH, path);
+                        clipboardManager.setPrimaryClip(clipData);
+
+                        Toast.makeText(mContext,"AbsPath has been copied to buffer", Toast.LENGTH_SHORT).show();
+                    }
+                })
                 .setPositiveButton("OK", null).show();
     }
 
@@ -481,9 +506,9 @@ public class FileManagerFragment extends Fragment {
                     case R.id.file_item_info:
                         showInfoAbout(position);
                         return true;
-                    case R.id.file_item_open:
+/*                    case R.id.file_item_open:
                         open(position);
-                        return true;
+                        return true;*/
                     case R.id.file_item_rename:
                         showRenameDialog(position);
                         return true;
@@ -507,7 +532,7 @@ public class FileManagerFragment extends Fragment {
 
     private void showRenameDialog(int position) {
         final File file = mItems.get(position).getFile();
-        final EditText inputNewName = AndroidUtil.initEditText(mContext, file);
+        final EditText inputNewName = AndroidUtil.initEditText(mContext, file.getName());
         new AlertDialog.Builder(mContext)
                 .setTitle(mContext.getString(R.string.app_name))
                 .setMessage("Do you want to rename file?")
@@ -553,13 +578,13 @@ public class FileManagerFragment extends Fragment {
                 .show();
     }
 
-    private void open(int position) {
+/*    private void open(int position) {
 
-    }
+    }*/
 
     private void moveFile(final int position) {
         final File file = mItems.get(position).getFile();
-        final EditText inputNewLocation = AndroidUtil.initEditText(mContext, file);
+        final EditText inputNewLocation = AndroidUtil.initEditText(mContext, file.getParent());
         new AlertDialog.Builder(mContext)
                 .setTitle(mContext.getString(R.string.app_name))
                 .setMessage("Do you want to move file to?")
@@ -588,7 +613,7 @@ public class FileManagerFragment extends Fragment {
 
     private void copyFile(int position) {
         final File file = mItems.get(position).getFile();
-        final EditText inputLocationForCopy = AndroidUtil.initEditText(mContext, file);
+        final EditText inputLocationForCopy = AndroidUtil.initEditText(mContext, file.getParent());
         new AlertDialog.Builder(mContext)
                 .setTitle(mContext.getString(R.string.app_name))
                 .setMessage("Do you want to copy file to?")
@@ -618,7 +643,7 @@ public class FileManagerFragment extends Fragment {
                                 out.close();
                                 Toast.makeText(mContext, "You have copied the file to " + nameTargetLocation, Toast.LENGTH_SHORT).show();
                             } catch (IOException e) {
-                                Toast.makeText(mContext, "IOException: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                Toast.makeText(mContext, "IOException: " + e.getMessage(), Toast.LENGTH_LONG).show();
                             }
                         }
                     }
@@ -654,7 +679,7 @@ public class FileManagerFragment extends Fragment {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         String nameFile = inputNewDir.getText().toString();
-                        if (!TextUtils.isEmpty(nameFile)) {
+                        if (!TextUtils.isEmpty(nameFile) && mCurrentDir != null) {
                             if (new File(mCurrentDir.getAbsoluteFile(), inputNewDir.getText().toString()).mkdir()) {
                                 Toast.makeText(mContext, "You have created new folder.", Toast.LENGTH_SHORT).show();
                                 listFiles(mCurrentDir);
@@ -667,4 +692,6 @@ public class FileManagerFragment extends Fragment {
                 .setNegativeButton("CANCEL", null)
                 .show();
     }
+
+
 }

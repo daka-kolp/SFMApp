@@ -3,9 +3,9 @@
     <item
         android:id="@+id/file_item_info"
         android:title="@string/info" />
-    <item
+<!--    <item
         android:id="@+id/file_item_open"
-        android:title="@string/open" />
+        android:title="@string/open" />-->
     <item
         android:id="@+id/file_item_rename"
         android:title="@string/rename" />

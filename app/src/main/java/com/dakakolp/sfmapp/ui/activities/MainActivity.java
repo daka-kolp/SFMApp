@@ -76,6 +76,16 @@ public class MainActivity extends AppCompatActivity implements DocumentSelectLis
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        MenuItem createNewFolder = menu.findItem(R.id.file_manager_menu_create_new_folder);
+        if (mDirectoryFragment.getCurrentDir() != null) {
+            createNewFolder.setVisible(true);
+        } else {
+            createNewFolder.setVisible(false);
+        }
+        return super.onPrepareOptionsMenu(menu);
+    }
 
     @Override
     public void startDocumentSelectActivity(View view, int position) {

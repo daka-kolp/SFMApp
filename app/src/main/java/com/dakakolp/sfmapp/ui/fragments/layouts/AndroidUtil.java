@@ -66,10 +66,10 @@ public class AndroidUtil {
         }
     }
 
-    public static EditText initEditText(Context context, File file) {
+    public static EditText initEditText(Context context, String file) {
         EditText inputNewLocation = new EditText(context);
         if (file != null)
-            inputNewLocation.setText(file.getParent());
+            inputNewLocation.setText(file);
         LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.MATCH_PARENT
