@@ -2,15 +2,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/file_manager_menu_copy"
-        android:title="@string/action_copy" />
-    <item
-        android:id="@+id/file_manager_menu_move"
-        android:title="@string/action_move"
-        app:showAsAction="ifRoom" />
-    <item
-        android:id="@+id/file_manager_menu_cancel"
-        android:title="@string/action_cancel" />
+        android:id="@+id/file_manager_menu_create_new_folder"
+        android:title="@string/action_create_new_folder" />
     <item
         android:id="@+id/file_manager_menu_about"
         android:title="@string/action_about" />

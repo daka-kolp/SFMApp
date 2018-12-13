@@ -7,14 +7,14 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
-        android:name="com.dakakolp.sfmapp.SFMApp"
+        android:name=".SFMApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
         <activity
-            android:name="com.dakakolp.sfmapp.ui.activities.SplashActivity"
+            android:name=".ui.activities.SplashActivity"
             android:theme="@style/Launcher">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -23,9 +23,12 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.dakakolp.sfmapp.ui.activities.MainActivity"
+            android:name=".ui.activities.MainActivity"
             android:label="@string/app_name"
             android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.activities.AboutActivity"
+            android:theme="@style/Theme.Design.NoActionBar" />
     </application>
 
 </manifest>

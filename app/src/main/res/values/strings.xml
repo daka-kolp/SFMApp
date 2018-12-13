@@ -6,11 +6,14 @@
     <string name="rename">Rename</string>
     <string name="info">Description</string>
     <string name="open">Open</string>
+    <string name="move">Move To</string>
+    <string name="copy">Copy To</string>
 
     <string name="free_of_total_space">Free %1$s of %2$s</string>
 
-    <string name="action_move">Move To</string>
-    <string name="action_copy">Copy To</string>
-    <string name="action_cancel">Cancel</string>
+    <string name="action_create_new_folder">Create new folder</string>
     <string name="action_about">About</string>
+
+    <string name="dev_name">author:\tKolpakova Dar\'ya</string>
+    <string name="version">Version:\t</string>
 </resources>

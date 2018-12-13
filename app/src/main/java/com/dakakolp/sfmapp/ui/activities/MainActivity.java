@@ -1,5 +1,6 @@
 package com.dakakolp.sfmapp.ui.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -23,9 +24,6 @@ public class MainActivity extends AppCompatActivity implements DocumentSelectLis
     private FragmentTransaction mFragmentTransaction;
     private FileManagerFragment mDirectoryFragment;
 
-    private boolean mIsCopyMode;
-    private boolean mIsMoveMode;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,7 +39,6 @@ public class MainActivity extends AppCompatActivity implements DocumentSelectLis
 
         mFragmentManager = getSupportFragmentManager();
         mFragmentTransaction = mFragmentManager.beginTransaction();
-
         mDirectoryFragment = new FileManagerFragment();
         mFragmentTransaction.replace(R.id.fragment_container, mDirectoryFragment, mDirectoryFragment.toString());
         mFragmentTransaction.commit();
@@ -66,52 +63,19 @@ public class MainActivity extends AppCompatActivity implements DocumentSelectLis
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
 
-            case R.id.file_manager_menu_move:
-
+            case R.id.file_manager_menu_create_new_folder:
+                makeDir();
                 break;
-            case R.id.file_manager_menu_copy:
 
-                break;
-            case R.id.file_manager_menu_cancel:
-                if (mIsMoveMode) {
-
-
-                } else if (mIsCopyMode) {
-
-                }
-                break;
             case R.id.file_manager_menu_about:
-
+                Intent intent = new Intent(this, AboutActivity.class);
+                startActivity(intent);
                 break;
 
         }
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-        MenuItem copy = menu.findItem(R.id.file_manager_menu_copy);
-        MenuItem move = menu.findItem(R.id.file_manager_menu_move);
-        MenuItem cancel = menu.findItem(R.id.file_manager_menu_cancel);
-        MenuItem about = menu.findItem(R.id.file_manager_menu_about);
-        if (mIsCopyMode) {
-            copy.setVisible(true);
-            move.setVisible(false);
-            cancel.setVisible(true);
-            about.setVisible(false);
-        } else if (mIsMoveMode) {
-            copy.setVisible(false);
-            move.setVisible(true);
-            cancel.setVisible(true);
-            about.setVisible(false);
-        } else {
-            copy.setVisible(false);
-            move.setVisible(false);
-            cancel.setVisible(false);
-            about.setVisible(true);
-        }
-        return super.onPrepareOptionsMenu(menu);
-    }
 
     @Override
     public void startDocumentSelectActivity(View view, int position) {
@@ -135,5 +99,8 @@ public class MainActivity extends AppCompatActivity implements DocumentSelectLis
 
     }
 
-
+    @Override
+    public void makeDir() {
+        mDirectoryFragment.mkDir();
+    }
 }

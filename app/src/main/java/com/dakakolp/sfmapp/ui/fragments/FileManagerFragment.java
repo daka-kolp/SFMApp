@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.StatFs;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.GravityCompat;
 import android.support.v7.widget.PopupMenu;
@@ -21,7 +22,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -35,7 +35,12 @@ import com.dakakolp.sfmapp.ui.fragments.layouts.AndroidUtil;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -86,6 +91,30 @@ public class FileManagerFragment extends Fragment {
     };
 
     public FileManagerFragment() {
+
+    }
+
+    public static final String MOVE_MODE = "move_mode";
+    public static final String COPY_MODE = "copy_mode";
+    private boolean mIsMoveMode;
+    private boolean mIsCopyMode;
+
+    public static FileManagerFragment newInstance(boolean isMoveMode, boolean isCopyMode) {
+        FileManagerFragment managerFragment = new FileManagerFragment();
+        Bundle bundle = new Bundle();
+        bundle.putBoolean(MOVE_MODE, isMoveMode);
+        bundle.putBoolean(COPY_MODE, isCopyMode);
+        managerFragment.setArguments(bundle);
+        return managerFragment;
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+            mIsMoveMode = getArguments().getBoolean(MOVE_MODE);
+            mIsCopyMode = getArguments().getBoolean(COPY_MODE);
+        }
 
     }
 
@@ -230,16 +259,14 @@ public class FileManagerFragment extends Fragment {
         }
         ListItem item = mItems.get(i);
         File file = item.getFile();
-        if (file != null && !file.isDirectory()) {
+        if (file != null) {
             if (!file.canRead()) {
                 showInfoBox("AccessError");
             } else if (file.length() > mSizeLimit) {
                 showInfoBox("FileUploadLimit");
-            } else if (!file.isDirectory()) {
-                if (mListener != null) {
-                    mListener.didSelectFiles(FileManagerFragment.this, getDescriptionFile(file));
-                    return true;
-                }
+            } else if (mListener != null) {
+                mListener.didSelectFiles(FileManagerFragment.this, getDescriptionFile(file));
+                return true;
             } else {
                 showInfoBox("Choose correct file.");
                 return false;
@@ -454,22 +481,19 @@ public class FileManagerFragment extends Fragment {
                         showInfoAbout(position);
                         return true;
                     case R.id.file_item_open:
-
-
+                        open(position);
                         return true;
                     case R.id.file_item_rename:
                         showRenameDialog(position);
                         return true;
                     case R.id.file_item_delete:
                         showDeleteDialog(position);
-
                         return true;
                     case R.id.file_item_move:
-                        move(position);
-
+                        moveFile(position);
                         return true;
                     case R.id.file_item_copy:
-                        copy(position);
+                        copyFile(position);
 
                         return true;
                 }
@@ -479,24 +503,10 @@ public class FileManagerFragment extends Fragment {
         popupMenu.show();
     }
 
-    private void move(int position) {
-
-    }
-
-    private void copy(int position) {
-
-    }
 
     private void showRenameDialog(int position) {
         final File file = mItems.get(position).getFile();
-        final EditText inputNewName = new EditText(mContext);
-        inputNewName.setText(file.getName());
-        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.MATCH_PARENT
-        );
-        inputNewName.setLayoutParams(layoutParams);
-
+        final EditText inputNewName = AndroidUtil.initEditText(mContext, file);
         new AlertDialog.Builder(mContext)
                 .setTitle(mContext.getString(R.string.app_name))
                 .setMessage("Do you want to rename file?")
@@ -507,8 +517,8 @@ public class FileManagerFragment extends Fragment {
                         String newName = inputNewName.getText().toString();
                         if (!TextUtils.isEmpty(newName)) {
                             String path = file.getAbsolutePath()
-                                    .substring(0, file.getAbsolutePath().lastIndexOf("/") + 1);
-                            if (file.renameTo(new File(path + newName))) {
+                                    .substring(0, file.getAbsolutePath().lastIndexOf("/"));
+                            if (file.renameTo(new File(path, newName))) {
                                 listFiles(mCurrentDir);
                             } else {
                                 // TODO: 12/11/18 doesn't want work with SDCard
@@ -542,6 +552,78 @@ public class FileManagerFragment extends Fragment {
                 .show();
     }
 
+    private void open(int position) {
+
+    }
+
+    private void moveFile(final int position) {
+        final File file = mItems.get(position).getFile();
+        final EditText inputNewLocation = AndroidUtil.initEditText(mContext, file);
+        new AlertDialog.Builder(mContext)
+                .setTitle(mContext.getString(R.string.app_name))
+                .setMessage("Do you want to move file to?")
+                .setView(inputNewLocation)
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String nameFile = file.getName();
+                        if (!TextUtils.isEmpty(nameFile)) {
+                            String path = inputNewLocation.getText().toString();
+                            if (file.renameTo(new File(path, nameFile))) {
+                                mCurrentDir = new File(path);
+                                updateTitleName(mCurrentDir.getName());
+                                listFiles(mCurrentDir);
+                            } else {
+                                // TODO: 12/11/18 doesn't want work with SDCard
+                                Toast.makeText(mContext, "You can't move the file...", Toast.LENGTH_SHORT).show();
+                            }
+
+                        }
+                    }
+                })
+                .setNegativeButton("CANCEL", null)
+                .show();
+    }
+
+    private void copyFile(int position) {
+        final File file = mItems.get(position).getFile();
+        final EditText inputLocationForCopy = AndroidUtil.initEditText(mContext, file);
+        new AlertDialog.Builder(mContext)
+                .setTitle(mContext.getString(R.string.app_name))
+                .setMessage("Do you want to copy file to?")
+                .setView(inputLocationForCopy)
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String nameTargetLocation = inputLocationForCopy.getText().toString();
+                        try {
+                            if (!TextUtils.isEmpty(nameTargetLocation)) {
+
+                                // TODO: 12/13/18  AsynkTask 
+                                File fileTargetLocation = new File(nameTargetLocation, file.getName());
+
+                                InputStream in = new FileInputStream(file);
+                                OutputStream out = new FileOutputStream(fileTargetLocation);
+
+                                byte[] buf = new byte[1024];
+                                int len;
+
+                                while ((len = in.read(buf)) > 0) {
+                                    out.write(buf, 0, len);
+                                }
+
+                                in.close();
+                                out.close();
+                            }
+                        } catch (IOException e) {
+                            Toast.makeText(mContext, "IOException: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                })
+                .setNegativeButton("CANCEL", null)
+                .show();
+    }
+
     public boolean onBackPressed() {
         if (mHistory.size() > 0) {
             HistoryEntry histEntry = mHistory.remove(mHistory.size() - 1);
@@ -557,5 +639,29 @@ public class FileManagerFragment extends Fragment {
         } else {
             return true;
         }
+    }
+
+    public void mkDir() {
+        final EditText inputNewDir = AndroidUtil.initEditText(mContext, null);
+        new AlertDialog.Builder(mContext)
+                .setTitle(mContext.getString(R.string.app_name))
+                .setMessage("Do you want to create new folder?")
+                .setView(inputNewDir)
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String nameFile = inputNewDir.getText().toString();
+                        if (!TextUtils.isEmpty(nameFile)) {
+                            if (new File(mCurrentDir.getAbsoluteFile(), inputNewDir.getText().toString()).mkdir()) {
+                                Toast.makeText(mContext, "You have created new folder.", Toast.LENGTH_SHORT).show();
+                                listFiles(mCurrentDir);
+                            } else {
+                                Toast.makeText(mContext, "You can't create folder here...", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    }
+                })
+                .setNegativeButton("CANCEL", null)
+                .show();
     }
 }

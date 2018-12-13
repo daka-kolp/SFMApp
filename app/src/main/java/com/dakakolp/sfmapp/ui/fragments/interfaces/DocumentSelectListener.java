@@ -4,6 +4,7 @@ import android.view.View;
 
 import com.dakakolp.sfmapp.ui.fragments.FileManagerFragment;
 
+import java.io.File;
 import java.util.ArrayList;
 
 public interface DocumentSelectListener {
@@ -13,4 +14,7 @@ public interface DocumentSelectListener {
     void updateAppBarName(String name);
 
     void startDocumentSelectActivity(View view, int position);
+
+    void makeDir();
+
 }

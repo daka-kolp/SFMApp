@@ -9,9 +9,13 @@ import android.util.StateSet;
 import android.view.Display;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 
 import com.dakakolp.sfmapp.SFMApp;
+
+import java.io.File;
 
 public class AndroidUtil {
 
@@ -60,5 +64,17 @@ public class AndroidUtil {
                 drawable.jumpToCurrentState();
             }
         }
+    }
+
+    public static EditText initEditText(Context context, File file) {
+        EditText inputNewLocation = new EditText(context);
+        if (file != null)
+            inputNewLocation.setText(file.getParent());
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT
+        );
+        inputNewLocation.setLayoutParams(layoutParams);
+        return inputNewLocation;
     }
 }

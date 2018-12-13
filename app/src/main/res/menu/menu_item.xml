@@ -14,8 +14,8 @@
         android:title="@string/delete" />
     <item
         android:id="@+id/file_item_move"
-        android:title="@string/action_move" />
+        android:title="@string/move" />
     <item
         android:id="@+id/file_item_copy"
-        android:title="@string/action_copy" />
+        android:title="@string/copy" />
 </menu>
