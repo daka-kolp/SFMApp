@@ -26,6 +26,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.dakakolp.sfmapp.R;
+import com.dakakolp.sfmapp.data.asynctask.CopyFileAsyncTask;
 import com.dakakolp.sfmapp.ui.adapters.FileListAdapter;
 import com.dakakolp.sfmapp.ui.adapters.adaptermodels.ListItem;
 import com.dakakolp.sfmapp.ui.fragments.helpers.FormatString;
@@ -596,10 +597,11 @@ public class FileManagerFragment extends Fragment {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         String nameTargetLocation = inputLocationForCopy.getText().toString();
-                        try {
-                            if (!TextUtils.isEmpty(nameTargetLocation)) {
-
-                                // TODO: 12/13/18  AsynkTask 
+                        CopyFileAsyncTask asyncTask = new CopyFileAsyncTask();
+                        asyncTask.execute(nameTargetLocation, file.getName());
+                        if (!TextUtils.isEmpty(nameTargetLocation)) {
+                            try {
+                                // TODO: 12/13/18  AsyncTask
                                 File fileTargetLocation = new File(nameTargetLocation, file.getName());
 
                                 InputStream in = new FileInputStream(file);
@@ -614,9 +616,10 @@ public class FileManagerFragment extends Fragment {
 
                                 in.close();
                                 out.close();
+                                Toast.makeText(mContext, "You have copied the file to " + nameTargetLocation, Toast.LENGTH_SHORT).show();
+                            } catch (IOException e) {
+                                Toast.makeText(mContext, "IOException: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                             }
-                        } catch (IOException e) {
-                            Toast.makeText(mContext, "IOException: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     }
                 })
