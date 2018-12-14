@@ -12,11 +12,10 @@
     <string name="free_of_total_space">Free %1$s of %2$s</string>
 
     <string name="action_create_new_folder">Create new folder</string>
+    <string name="action_copy_path_to_current_dir">Copy path to buffer</string>
     <string name="action_about">About</string>
 
     <string name="dev_name">author:\tKolpakova Dar\'ya</string>
     <string name="version">Version:\t</string>
 
-    <string name="out_of_memory">The file can be read</string>
-    <string name="action_copy_path_to_current_dir">Copy path to buffer</string>
 </resources>
