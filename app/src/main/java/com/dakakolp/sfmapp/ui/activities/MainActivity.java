@@ -15,9 +15,12 @@ import com.dakakolp.sfmapp.R;
 import com.dakakolp.sfmapp.ui.fragments.FileManagerFragment;
 import com.dakakolp.sfmapp.ui.fragments.interfaces.DocumentSelectListener;
 
+import java.io.File;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements DocumentSelectListener {
+
+    public static final String FILE_FOR_READING = "FILE_FOR_READING";
 
     private ActionBar mActionBar;
     private FragmentManager mFragmentManager;
@@ -112,5 +115,12 @@ public class MainActivity extends AppCompatActivity implements DocumentSelectLis
     @Override
     public void makeDir() {
         mDirectoryFragment.mkDir();
+    }
+
+    @Override
+    public void openFileReaderActivity(File file) {
+        Intent intent = new Intent(this, ReadFileActivity.class);
+        intent.putExtra(FILE_FOR_READING, file.getAbsolutePath());
+        startActivity(intent);
     }
 }

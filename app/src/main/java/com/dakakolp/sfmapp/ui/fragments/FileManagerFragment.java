@@ -39,6 +39,7 @@ import com.dakakolp.sfmapp.ui.fragments.layouts.AndroidUtil;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -331,8 +332,9 @@ public class FileManagerFragment extends Fragment {
     }
 
     private void initExternalStore(String extStorageAbsPath) {
+        BufferedReader reader = null;
         try {
-            BufferedReader reader = new BufferedReader(new FileReader("/proc/mounts"));
+            reader = new BufferedReader(new FileReader("/proc/mounts"));
             String infoAboutMountDevices;
             ArrayList<String> result = new ArrayList<>();
 
@@ -363,6 +365,14 @@ public class FileManagerFragment extends Fragment {
             }
         } catch (Exception e) {
             Log.e(LOG_FILE_MANAGER_FRAGMENT, e.getMessage());
+        } finally {
+            try {
+                if (reader != null) {
+                    reader.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -526,7 +536,12 @@ public class FileManagerFragment extends Fragment {
     }
 
     private void open(int position) {
-
+        File file = mItems.get(position).getFile();
+        if (!file.getName().contains(".")) {
+            mListener.openFileReaderActivity(file);
+        }else {
+            Toast.makeText(mContext, "You can't open the file...", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void showRenameDialog(int position) {

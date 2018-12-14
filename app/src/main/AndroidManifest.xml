@@ -30,6 +30,7 @@
             android:name=".ui.activities.AboutActivity"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.Design.NoActionBar" />
+        <activity android:name=".ui.activities.ReadFileActivity"></activity>
     </application>
 
 </manifest>

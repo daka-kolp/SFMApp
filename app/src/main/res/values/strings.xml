@@ -16,4 +16,6 @@
 
     <string name="dev_name">author:\tKolpakova Dar\'ya</string>
     <string name="version">Version:\t</string>
+
+    <string name="out_of_memory">The file can be read</string>
 </resources>

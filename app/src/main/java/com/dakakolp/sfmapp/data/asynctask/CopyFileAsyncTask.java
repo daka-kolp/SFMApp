@@ -15,7 +15,7 @@ import java.io.OutputStream;
 
 public class CopyFileAsyncTask extends AsyncTask<Void, Void, Boolean> {
 
-    public static final String TAG = "LogCopyFileAsyncTask";
+    private static final String TAG = "LogCopyFileAsyncTask";
     private String mCopyTo;
     private File mFileForCopy;
     @SuppressLint("StaticFieldLeak")
@@ -28,12 +28,14 @@ public class CopyFileAsyncTask extends AsyncTask<Void, Void, Boolean> {
     }
 
     @Override
-    protected Boolean doInBackground(Void... files) {
+    protected Boolean doInBackground(Void... voids) {
+        InputStream in = null;
+        OutputStream out = null;
         try {
             File fileTargetLocation = new File(mCopyTo, mFileForCopy.getName());
             Log.d(TAG, "doInBackground: " + mCopyTo + " " + mFileForCopy.getName());
-            InputStream in = new FileInputStream(mFileForCopy);
-            OutputStream out = new FileOutputStream(fileTargetLocation);
+            in = new FileInputStream(mFileForCopy);
+            out = new FileOutputStream(fileTargetLocation);
             byte[] buf = new byte[1024];
             int len;
             while ((len = in.read(buf)) > 0) {
@@ -44,6 +46,21 @@ public class CopyFileAsyncTask extends AsyncTask<Void, Void, Boolean> {
             return true;
         } catch (IOException e) {
             Log.d(TAG, "doInBackground: " + e.getMessage());
+        } finally {
+            try {
+                if (in != null) {
+                    in.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            try {
+                if (out != null) {
+                    out.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         return false;
     }
