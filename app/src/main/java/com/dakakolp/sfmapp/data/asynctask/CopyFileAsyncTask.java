@@ -33,7 +33,6 @@ public class CopyFileAsyncTask extends AsyncTask<Void, Void, Boolean> {
         OutputStream out = null;
         try {
             File fileTargetLocation = new File(mCopyTo, mFileForCopy.getName());
-            Log.d(TAG, "doInBackground: " + mCopyTo + " " + mFileForCopy.getName());
             in = new FileInputStream(mFileForCopy);
             out = new FileOutputStream(fileTargetLocation);
             byte[] buf = new byte[1024];

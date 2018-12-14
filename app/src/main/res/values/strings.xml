@@ -18,4 +18,5 @@
     <string name="version">Version:\t</string>
 
     <string name="out_of_memory">The file can be read</string>
+    <string name="action_copy_path_to_current_dir">Copy path to buffer</string>
 </resources>

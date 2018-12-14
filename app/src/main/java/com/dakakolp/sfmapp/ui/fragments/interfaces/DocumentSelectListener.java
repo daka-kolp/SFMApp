@@ -15,7 +15,5 @@ public interface DocumentSelectListener {
 
     void startDocumentSelectActivity(View view, int position);
 
-    void makeDir();
-
     void openFileReaderActivity(File file);
 }

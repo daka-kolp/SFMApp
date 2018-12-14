@@ -1,6 +1,8 @@
 package com.dakakolp.sfmapp.data.asynctask;
 
+import android.annotation.SuppressLint;
 import android.os.AsyncTask;
+import android.text.Editable;
 import android.util.Log;
 import android.widget.TextView;
 
@@ -11,26 +13,25 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
 
-public class FileReaderAsyncTask extends AsyncTask<Void, String, String> {
+public class FileReaderAsyncTask extends AsyncTask<Void, String, Void> {
     private static final String TAG = "LogFileReaderAsyncTask";
     private File mFileForRead;
+    @SuppressLint("StaticFieldLeak")
     private TextView mTextView;
 
     public FileReaderAsyncTask(File fileForRead, TextView textView) {
         this.mFileForRead = fileForRead;
         this.mTextView = textView;
+        textView.setText(null, TextView.BufferType.EDITABLE);
     }
 
 
     @Override
-    protected String doInBackground(Void... voids) {
-        if (mFileForRead.length() > 300000)
-            cancel(true);
-        String list = null;
+    protected Void doInBackground(Void... voids) {
+
         FileReader reader = null;
         try {
             reader = new FileReader(mFileForRead);
-            StringBuilder stringBuilder = new StringBuilder();
             short size = 256;
             char[] buffer = new char[size];
             int counter;
@@ -38,13 +39,10 @@ public class FileReaderAsyncTask extends AsyncTask<Void, String, String> {
                 if (counter < 256) {
                     buffer = Arrays.copyOf(buffer, counter);
                 }
-                publishProgress(stringBuilder.toString());
-                stringBuilder.append(String.copyValueOf(buffer));
+                String string = String.valueOf(buffer);
+                publishProgress(string);
             }
             reader.close();
-            list = stringBuilder.toString();
-        } catch (OutOfMemoryError e) {
-            publishProgress("Out of memory error...");
         } catch (IOException e) {
             Log.d(TAG, "doInBackground: " + e.getMessage());
         } finally {
@@ -56,16 +54,12 @@ public class FileReaderAsyncTask extends AsyncTask<Void, String, String> {
                 e.printStackTrace();
             }
         }
-        return list;
+        return null;
     }
 
     @Override
     protected void onProgressUpdate(String... values) {
-        mTextView.setText(values[0]);
+        ((Editable) mTextView.getText()).append(values[0]);
     }
 
-    @Override
-    protected void onCancelled() {
-        mTextView.setText(R.string.out_of_memory);
-    }
 }

@@ -471,7 +471,7 @@ public class FileManagerFragment extends Fragment {
         return "Free " + FormatString.formatFileSize(free) + " of " + FormatString.formatFileSize(total);
     }
 
-    public static final String PATH = "path to file";
+    public static final String PATH_TO_FILE = "path to file";
 
     public void showInfoDialog(final List<String> message) {
         if (mContext == null) {
@@ -492,7 +492,7 @@ public class FileManagerFragment extends Fragment {
                                 (ClipboardManager) mContext.getSystemService(Context.CLIPBOARD_SERVICE);
                         ClipData clipData;
                         String path = message.get(1).substring(message.get(1).indexOf("/"));
-                        clipData = ClipData.newPlainText(PATH, path);
+                        clipData = ClipData.newPlainText(PATH_TO_FILE, path);
                         clipboardManager.setPrimaryClip(clipData);
 
                         Toast.makeText(mContext, "AbsPath has been copied to buffer", Toast.LENGTH_SHORT).show();
@@ -651,7 +651,6 @@ public class FileManagerFragment extends Fragment {
             ClipData.Item item = data.getItemAt(0);
             String text = item.getText().toString();
             inputLoc.setText(text);
-            Toast.makeText(mContext, text, Toast.LENGTH_LONG).show();
         } else {
             Toast.makeText(mContext, "Buffer is empty", Toast.LENGTH_LONG).show();
         }

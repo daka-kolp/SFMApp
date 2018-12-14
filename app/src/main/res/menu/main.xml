@@ -1,9 +1,11 @@
-<menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
         android:id="@+id/file_manager_menu_create_new_folder"
         android:title="@string/action_create_new_folder" />
+    <item
+        android:id="@+id/file_manager_menu_copy_path"
+        android:title="@string/action_copy_path_to_current_dir" />
     <item
         android:id="@+id/file_manager_menu_about"
         android:title="@string/action_about" />
