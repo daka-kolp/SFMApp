@@ -342,7 +342,8 @@ public class FileManagerFragment extends Fragment {
                 if ((!infoAboutMountDevices.contains("/storage"))
                         || infoAboutMountDevices.contains("asec")
                         || infoAboutMountDevices.contains("tmpfs")
-                        || infoAboutMountDevices.contains("none")) {
+                        || infoAboutMountDevices.contains("none")
+                        || infoAboutMountDevices.contains("legacy")) {
                     continue;
                 }
                 String[] info = infoAboutMountDevices.split(" ");
@@ -539,7 +540,7 @@ public class FileManagerFragment extends Fragment {
         File file = mItems.get(position).getFile();
         if (!file.getName().contains(".")) {
             mListener.openFileReaderActivity(file);
-        }else {
+        } else {
             Toast.makeText(mContext, "You can't open the file...", Toast.LENGTH_SHORT).show();
         }
     }
@@ -696,6 +697,4 @@ public class FileManagerFragment extends Fragment {
                 .setNegativeButton("CANCEL", null)
                 .show();
     }
-
-
 }
