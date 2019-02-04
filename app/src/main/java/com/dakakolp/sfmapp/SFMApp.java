@@ -5,7 +5,7 @@ import android.app.Application;
 public class SFMApp extends Application {
 
     private static SFMApp sApp;
-
+//some comment
 
     @Override
     public void onCreate() {
