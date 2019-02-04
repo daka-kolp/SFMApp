@@ -16,5 +16,5 @@ public class SFMApp extends Application {
     public static SFMApp getApp() {
         return sApp;
     }
-
+//some comment_2
 }
